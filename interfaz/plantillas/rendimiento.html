@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestador personal — Rendimiento</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+<main>
+  <h1>Orquestador personal</h1>
+  <nav>
+    <a href="/">Hoy y tareas</a>
+    <a href="/rendimiento">Rendimiento</a>
+  </nav>
+
+  <section>
+    <h2>Tendencias</h2>
+    <div class="cuadricula-graficas">
+      {% for etiqueta, svg in graficas.items() %}
+      <div class="tarjeta-grafica">
+        <h3>{{ etiqueta }}</h3>
+        {{ svg | safe }}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2>Historial</h2>
+    {% if filas %}
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Readiness</th>
+          <th>Estado</th>
+          <th>HRV</th>
+          <th>Body battery</th>
+          <th>ACWR</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fila in filas | reverse %}
+        <tr>
+          <td>{{ fila.fecha }}</td>
+          <td>{{ fila.training_readiness }}</td>
+          <td>{{ fila.training_status }}</td>
+          <td>{{ fila.hrv_valor_ms }}</td>
+          <td>{{ fila.body_battery }}</td>
+          <td>{{ fila.acwr }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="grafica-vacia">Todavia no hay historial. Cada vez que corras el reporte diario (localmente o por el Action) se agrega una fila aqui.</p>
+    {% endif %}
+  </section>
+</main>
+</body>
+</html>

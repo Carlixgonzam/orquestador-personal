@@ -3,8 +3,10 @@ from datetime import date, datetime
 
 import yaml
 
+from fuentes.cursos_cliente import cargar_nombres_cursos
 from fuentes.entrenamiento_cliente import cargar_plan_semana_actual, obtener_sesion_de_hoy
 from fuentes.garmin_cliente import ClienteGarmin
+from fuentes.historial_cliente import registrar_estado_fisiologico
 from fuentes.horario_cliente import FIN_DIA, INICIO_DIA, calcular_huecos_libres, cargar_bloques_fijos, nombre_dia_semana
 from fuentes.pendientes_cliente import cargar_tareas_pendientes
 from modelo.estado_fisiologico import EstadoFisiologico
@@ -15,6 +17,7 @@ from salida.generador_reporte import generar_reporte
 RAIZ_DEL_PROYECTO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUTA_CONFIG_POR_DEFECTO = os.path.join(RAIZ_DEL_PROYECTO, "config", "config.yaml")
 RUTA_SALIDA_POR_DEFECTO = os.path.join(RAIZ_DEL_PROYECTO, "hoy.md")
+RUTA_HISTORIAL_POR_DEFECTO = os.path.join(RAIZ_DEL_PROYECTO, "historial", "historial_fisiologico.csv")
 
 
 def _cargar_configuracion(ruta_config: str) -> dict:
@@ -126,17 +129,20 @@ def ejecutar(
     fecha: date | None = None,
     ruta_config: str = RUTA_CONFIG_POR_DEFECTO,
     ruta_salida: str = RUTA_SALIDA_POR_DEFECTO,
+    ruta_historial: str = RUTA_HISTORIAL_POR_DEFECTO,
     cliente_garmin: ClienteGarmin | None = None,
 ) -> str:
     fecha_referencia = fecha or date.today()
     configuracion = _cargar_configuracion(ruta_config)
     umbrales = configuracion.get("umbrales", {})
     rutas_repos = configuracion.get("rutas_repos", {})
+    nombres_cursos = cargar_nombres_cursos(ruta_config)
 
     horario_hoy = construir_horario_hoy(ruta_config, fecha_referencia)
 
     cliente_garmin = cliente_garmin or ClienteGarmin()
     estado_fisiologico = construir_estado_fisiologico(cliente_garmin, fecha_referencia)
+    registrar_estado_fisiologico(ruta_historial, estado_fisiologico)
 
     tareas_pendientes = cargar_tareas_pendientes(rutas_repos["pendientes"])
 
@@ -153,7 +159,7 @@ def ejecutar(
         body_battery_medio=umbrales.get("body_battery_medio", 70),
     )
 
-    return generar_reporte(resultado, estado_fisiologico, horario_hoy, ruta_salida=ruta_salida)
+    return generar_reporte(resultado, estado_fisiologico, horario_hoy, ruta_salida=ruta_salida, nombres_cursos=nombres_cursos)
 
 
 if __name__ == "__main__":

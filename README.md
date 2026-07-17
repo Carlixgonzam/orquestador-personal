@@ -11,20 +11,21 @@ El sistema completo vive en cuatro tipos de repos separados. Este repo (`orquest
 - **orquestador-personal** (este repo): modelos, clientes de datos, motor de reglas y generador de reporte.
 - **pendientes**: repo separado con un archivo `tareas.yaml` con las tareas académicas pendientes (curso, título, deadline, energía requerida, peso académico, estado).
 - **entrenamiento**: repo separado con archivos `plan-semana-XX.yaml` (uno por semana ISO) con las sesiones de entrenamiento planeadas.
-- **notas-*** (seis repos, uno por curso: dalgo, moviles, web, fisica2, matematica, gobierno-procesos): repos de notas independientes, referenciados solo por ruta local en `config/config.yaml`. Nunca se clonan como submódulo ni se copian dentro de este repo.
+- **notas-*** (seis repos, uno por curso: algoritmos, moviles, web, fisica2, matematica, gobierno-procesos): repos de notas independientes, referenciados solo por ruta local en `config/config.yaml`. Nunca se clonan como submódulo ni se copian dentro de este repo.
 
 `orquestador-personal` solo lee de los repos de entrenamiento y notas. Sí escribe en `pendientes/tareas.yaml`, pero únicamente a través de la interfaz web (agregar, completar o eliminar tareas) — nunca automáticamente durante `ejecutar_diario.py`.
 
 ## Estructura del código
 
 ```
-config/config.yaml           horario fijo, umbrales y rutas a los demás repos
+config/config.yaml           horario fijo, umbrales, nombres de curso y rutas a los demás repos
 modelo/                       dataclasses del dominio (tarea, sesion_entrenamiento, estado_fisiologico, bloque_fijo, hueco_libre)
-fuentes/                      clientes que leen (y en el caso de pendientes, tambien escriben) Garmin, pendientes, entrenamiento, notas y el horario fijo
+fuentes/                      clientes que leen (y en el caso de pendientes, tambien escriben) Garmin, pendientes, entrenamiento, notas, cursos, historial y el horario fijo
 motor/                        jerarquia de reglas de decision y recomendador de entrenamiento
 salida/                       generador del reporte hoy.md a partir de una plantilla Jinja
-scripts/ejecutar_diario.py    entry point que orquesta todo el flujo
-interfaz/app.py               interfaz web local (Flask) para ver hoy.md y gestionar tareas sin editar YAML a mano
+scripts/ejecutar_diario.py    entry point que orquesta todo el flujo (genera hoy.md y registra el historial)
+interfaz/app.py               interfaz web local (Flask): hoy.md, tareas, notas de curso y graficas de rendimiento
+historial/                    historial_fisiologico.csv, una fila por dia, generado automaticamente
 tests/                        tests con pytest y fixtures mock (sin tocar Garmin ni los repos reales)
 ```
 
@@ -90,8 +91,15 @@ Esto levanta un servidor en `http://127.0.0.1:5050` (correrlo desde la raíz del
 - Agregar una tarea nueva con un formulario (curso, título, deadline, energía requerida, créditos).
 - Marcar una tarea como completada o eliminarla.
 - Ver, debajo de cada tarea, los hallazgos marcados con `\begin{alertbox}...\end{alertbox}` o `\begin{examenbox}...\end{examenbox}` en el repo de notas del curso correspondiente (si ese repo existe localmente). Estos son entornos de `preamble.sty`, la plantilla LaTeX real de las notas.
+- Ver una página de **Rendimiento** (`/rendimiento`) con gráficas de tendencia (disposición para entrenar, body battery, HRV, ACWR) y una tabla del historial completo.
+
+Los nombres de curso que se muestran (en la tabla de tareas, el dropdown y el reporte) vienen de `nombres_cursos` en `config/config.yaml` — el `curso` interno de cada tarea sigue siendo el slug corto (`algoritmos`, `moviles`, etc.), que es el que conecta con `pendientes/tareas.yaml` y los repos `notas-*`.
 
 Es un servidor de desarrollo Flask pensado para uso local y personal, no para exponerlo a internet.
+
+## Historial y gráficas de rendimiento
+
+Cada vez que corre `ejecutar_diario.py` (local o vía el Action), se agrega o actualiza una fila del día en `historial/historial_fisiologico.csv` (una fila por fecha, se sobrescribe si ya corriste ese día). Ese archivo alimenta las gráficas de `/rendimiento` en la interfaz — no hace falta ninguna base de datos ni dependencia externa, es CSV plano y las gráficas son SVG generado en Python.
 
 ## Cómo correr los tests
 

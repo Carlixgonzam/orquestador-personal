@@ -3,6 +3,8 @@ from datetime import date
 
 from flask import Flask, redirect, render_template, request, url_for
 
+from fuentes.cursos_cliente import cargar_nombres_cursos
+from fuentes.historial_cliente import cargar_historial
 from fuentes.notas_cliente import hallazgos_por_curso
 from fuentes.pendientes_cliente import (
     actualizar_estado_tarea,
@@ -10,10 +12,17 @@ from fuentes.pendientes_cliente import (
     cargar_todas_las_tareas,
     eliminar_tarea,
 )
+from interfaz.graficas import generar_graficas_de_historial
 from modelo.tarea import Tarea
-from scripts.ejecutar_diario import RUTA_CONFIG_POR_DEFECTO, RUTA_SALIDA_POR_DEFECTO, _cargar_configuracion, ejecutar
+from scripts.ejecutar_diario import (
+    RUTA_CONFIG_POR_DEFECTO,
+    RUTA_HISTORIAL_POR_DEFECTO,
+    RUTA_SALIDA_POR_DEFECTO,
+    _cargar_configuracion,
+    ejecutar,
+)
 
-app = Flask(__name__, template_folder="plantillas")
+app = Flask(__name__, template_folder="plantillas", static_folder="estaticos")
 
 
 def _ruta_repo_pendientes() -> str:
@@ -24,6 +33,10 @@ def _ruta_repo_pendientes() -> str:
 def _repos_notas() -> list[dict]:
     configuracion = _cargar_configuracion(RUTA_CONFIG_POR_DEFECTO)
     return configuracion.get("repos_notas", [])
+
+
+def _nombres_cursos() -> dict[str, str]:
+    return cargar_nombres_cursos(RUTA_CONFIG_POR_DEFECTO)
 
 
 def _leer_contenido_hoy() -> str:
@@ -45,6 +58,17 @@ def index():
         tareas=_tareas_ordenadas_por_deadline_con_indice(),
         contenido_hoy=_leer_contenido_hoy(),
         hallazgos_por_curso=hallazgos_por_curso(_repos_notas()),
+        nombres_cursos=_nombres_cursos(),
+    )
+
+
+@app.route("/rendimiento")
+def rendimiento():
+    filas = cargar_historial(RUTA_HISTORIAL_POR_DEFECTO)
+    return render_template(
+        "rendimiento.html",
+        filas=filas,
+        graficas=generar_graficas_de_historial(filas),
     )
 
 

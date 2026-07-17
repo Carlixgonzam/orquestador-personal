@@ -4,170 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orquestador personal</title>
-<style>
-  :root {
-    color-scheme: light dark;
-    --fondo: #f7f7f5;
-    --tarjeta: #ffffff;
-    --borde: #e2e2df;
-    --texto: #1f1f1d;
-    --texto-suave: #6b6b66;
-    --acento: #3d6a5c;
-    --alta: #c0532c;
-    --media: #b8862f;
-    --baja: #3d6a5c;
-    --important: #4a5a8c;
-    --examen: #8c4a6e;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --fondo: #161614;
-      --tarjeta: #212120;
-      --borde: #33332f;
-      --texto: #ecece8;
-      --texto-suave: #a3a39c;
-      --acento: #7fb8a4;
-      --alta: #e08a63;
-      --media: #e0b866;
-      --baja: #7fb8a4;
-      --important: #8b9cd6;
-      --examen: #d68bb2;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    padding: 2rem 1rem 4rem;
-    background: var(--fondo);
-    color: var(--texto);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    line-height: 1.5;
-  }
-  main {
-    max-width: 760px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  h1 {
-    font-size: 1.5rem;
-    margin-bottom: 0;
-  }
-  h2 {
-    font-size: 1.1rem;
-    margin: 0 0 0.75rem;
-  }
-  section {
-    background: var(--tarjeta);
-    border: 1px solid var(--borde);
-    border-radius: 0.75rem;
-    padding: 1.25rem;
-  }
-  pre {
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: ui-monospace, monospace;
-    font-size: 0.85rem;
-    max-height: 24rem;
-    overflow-y: auto;
-    background: var(--fondo);
-    border: 1px solid var(--borde);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-  }
-  th, td {
-    text-align: left;
-    padding: 0.5rem 0.4rem;
-    border-bottom: 1px solid var(--borde);
-    vertical-align: middle;
-  }
-  th {
-    color: var(--texto-suave);
-    font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-  }
-  .etiqueta {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #ffffff;
-  }
-  .etiqueta-alta { background: var(--alta); }
-  .etiqueta-media { background: var(--media); }
-  .etiqueta-baja { background: var(--baja); }
-  .etiqueta-nota-important { background: var(--important); }
-  .etiqueta-nota-examen { background: var(--examen); }
-  .fila-notas td {
-    padding-top: 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--borde);
-  }
-  .hallazgo-nota {
-    font-size: 0.85rem;
-    color: var(--texto-suave);
-    padding: 0.15rem 0;
-  }
-  form.formulario-tarea {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-    align-items: end;
-  }
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.85rem;
-    color: var(--texto-suave);
-  }
-  input, select {
-    padding: 0.4rem 0.5rem;
-    border-radius: 0.4rem;
-    border: 1px solid var(--borde);
-    background: var(--fondo);
-    color: var(--texto);
-    font-size: 0.9rem;
-  }
-  button {
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.4rem;
-    border: none;
-    background: var(--acento);
-    color: #ffffff;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 0.85rem;
-  }
-  button.boton-secundario {
-    background: transparent;
-    color: var(--texto-suave);
-    border: 1px solid var(--borde);
-  }
-  .fila-acciones {
-    display: flex;
-    gap: 0.4rem;
-  }
-  .fila-acciones form { display: inline; }
-  .cabecera-reporte {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
 </head>
 <body>
 <main>
   <h1>Orquestador personal</h1>
+  <nav>
+    <a href="/">Hoy y tareas</a>
+    <a href="/rendimiento">Rendimiento</a>
+  </nav>
 
   <section>
     <div class="cabecera-reporte">
@@ -196,7 +41,7 @@
       <tbody>
         {% for indice, tarea in tareas %}
         <tr>
-          <td>{{ tarea.curso }}</td>
+          <td>{{ nombres_cursos.get(tarea.curso, tarea.curso) }}</td>
           <td>{{ tarea.titulo }}</td>
           <td>{{ tarea.fecha_limite }}</td>
           <td><span class="etiqueta etiqueta-{{ tarea.energia_requerida }}">{{ tarea.energia_requerida }}</span></td>
@@ -236,12 +81,9 @@
     <form class="formulario-tarea" method="post" action="/tareas">
       <label>Curso
         <select name="curso" required>
-          <option value="algoritmos">Algoritmos</option>
-          <option value="moviles">Moviles</option>
-          <option value="web">Web</option>
-          <option value="fisica2">Fisica 2</option>
-          <option value="matematica">Matematica</option>
-          <option value="gobierno_procesos">Gobierno de procesos</option>
+          {% for curso_slug, nombre_completo in nombres_cursos.items() %}
+          <option value="{{ curso_slug }}">{{ nombre_completo }}</option>
+          {% endfor %}
         </select>
       </label>
       <label>Titulo

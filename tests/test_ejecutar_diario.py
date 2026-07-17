@@ -142,11 +142,13 @@ def test_construir_horario_hoy_despues_del_semestre_ignora_bloques_fijos(tmp_pat
 def test_ejecutar_genera_el_reporte_de_punta_a_punta(tmp_path, cliente_garmin_falso):
     ruta_config_prueba = _construir_ruta_config_de_prueba(tmp_path)
     ruta_salida = tmp_path / "hoy.md"
+    ruta_historial = tmp_path / "historial.csv"
 
     ruta_generada = ejecutar(
         fecha=FECHA_PRUEBA,
         ruta_config=ruta_config_prueba,
         ruta_salida=str(ruta_salida),
+        ruta_historial=str(ruta_historial),
         cliente_garmin=cliente_garmin_falso,
     )
 
@@ -154,4 +156,5 @@ def test_ejecutar_genera_el_reporte_de_punta_a_punta(tmp_path, cliente_garmin_fa
     contenido = ruta_salida.read_text(encoding="utf-8")
     assert "Reporte del dia" in contenido
     assert "Entrenamiento de hoy" in contenido
+    assert ruta_historial.exists()
     assert "Estado fisiologico" in contenido

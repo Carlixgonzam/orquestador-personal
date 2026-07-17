@@ -132,6 +132,14 @@ bloques_fijos:
     nombre: fisica2
     codigo: FISI1528
 
+nombres_cursos:
+  algoritmos: "Diseño de Algoritmos"
+  moviles: "Construcción de Aplicaciones Móviles"
+  web: "Programación Web"
+  fisica2: "Física 2"
+  matematica: "Matemática Estructural"
+  gobierno_procesos: "Gobierno de Procesos de Negocio"
+
 repos_notas:
   - nombre: notas-algoritmos
     ruta_local: "../notas-algoritmos"

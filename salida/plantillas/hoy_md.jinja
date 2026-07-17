@@ -4,7 +4,7 @@
 
 {% if horario.bloques_fijos %}
 {% for bloque in horario.bloques_fijos | sort(attribute='hora_inicio') %}
-- {{ bloque.hora_inicio.strftime('%H:%M') }}-{{ bloque.hora_fin.strftime('%H:%M') }} {{ bloque.tipo }}: {{ bloque.nombre }}{% if bloque.codigo %} ({{ bloque.codigo }}){% endif %}
+- {{ bloque.hora_inicio.strftime('%H:%M') }}-{{ bloque.hora_fin.strftime('%H:%M') }} {{ bloque.tipo }}: {{ nombres_cursos.get(bloque.nombre, bloque.nombre) }}{% if bloque.codigo %} ({{ bloque.codigo }}){% endif %}
 
 {% endfor %}
 {% else %}
@@ -15,7 +15,7 @@ Sin bloques fijos hoy.
 {% if resultado.bloque_fijo_activo %}
 ## Ahora mismo
 
-Estas dentro de un bloque fijo: {{ resultado.bloque_fijo_activo.nombre }} ({{ resultado.bloque_fijo_activo.hora_inicio.strftime('%H:%M') }}-{{ resultado.bloque_fijo_activo.hora_fin.strftime('%H:%M') }}). No hay recomendaciones adicionales mientras dure este bloque.
+Estas dentro de un bloque fijo: {{ nombres_cursos.get(resultado.bloque_fijo_activo.nombre, resultado.bloque_fijo_activo.nombre) }} ({{ resultado.bloque_fijo_activo.hora_inicio.strftime('%H:%M') }}-{{ resultado.bloque_fijo_activo.hora_fin.strftime('%H:%M') }}). No hay recomendaciones adicionales mientras dure este bloque.
 {% else %}
 ## Estado fisiologico
 
@@ -56,7 +56,7 @@ Estas dentro de un bloque fijo: {{ resultado.bloque_fijo_activo.nombre }} ({{ re
 
 {% if resultado.asignaciones %}
 {% for asignacion in resultado.asignaciones %}
-- {{ asignacion.hueco.hora_inicio.strftime('%H:%M') }}-{{ asignacion.hueco.hora_fin.strftime('%H:%M') }}: {% if asignacion.tarea %}{{ asignacion.tarea.curso }} — {{ asignacion.tarea.titulo }} (energia {{ asignacion.tarea.energia_requerida }}, deadline {{ asignacion.tarea.fecha_limite.strftime('%Y-%m-%d') }}, peso {{ asignacion.tarea.peso_academico }}){% else %}sin tarea pendiente que asignar{% endif %}
+- {{ asignacion.hueco.hora_inicio.strftime('%H:%M') }}-{{ asignacion.hueco.hora_fin.strftime('%H:%M') }}: {% if asignacion.tarea %}{{ nombres_cursos.get(asignacion.tarea.curso, asignacion.tarea.curso) }} — {{ asignacion.tarea.titulo }} (energia {{ asignacion.tarea.energia_requerida }}, deadline {{ asignacion.tarea.fecha_limite.strftime('%Y-%m-%d') }}, peso {{ asignacion.tarea.peso_academico }}){% else %}sin tarea pendiente que asignar{% endif %}
 
 {% endfor %}
 {% else %}

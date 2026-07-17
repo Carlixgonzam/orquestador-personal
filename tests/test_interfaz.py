@@ -8,6 +8,8 @@ from fuentes.pendientes_cliente import cargar_todas_las_tareas
 
 RUTA_REPO_PENDIENTES_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "pendientes_mock")
 RUTA_REPO_NOTAS_ALGORITMOS_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "notas_mock", "notas-algoritmos")
+RUTA_HISTORIAL_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "historial_mock.csv")
+NOMBRES_CURSOS_PRUEBA = {"algoritmos": "Diseño de Algoritmos", "web": "Programación Web"}
 
 
 @pytest.fixture
@@ -16,6 +18,8 @@ def cliente_de_prueba(tmp_path, monkeypatch):
     shutil.copytree(RUTA_REPO_PENDIENTES_MOCK, ruta_repo_prueba)
     monkeypatch.setattr(modulo_interfaz, "_ruta_repo_pendientes", lambda: str(ruta_repo_prueba))
     monkeypatch.setattr(modulo_interfaz, "_leer_contenido_hoy", lambda: "reporte de prueba")
+    monkeypatch.setattr(modulo_interfaz, "_nombres_cursos", lambda: NOMBRES_CURSOS_PRUEBA)
+    monkeypatch.setattr(modulo_interfaz, "RUTA_HISTORIAL_POR_DEFECTO", RUTA_HISTORIAL_MOCK)
     monkeypatch.setattr(
         modulo_interfaz,
         "_repos_notas",
@@ -85,3 +89,30 @@ def test_eliminar_tarea_la_remueve_del_repo(cliente_de_prueba):
     assert respuesta.status_code == 302
     tareas = cargar_todas_las_tareas(ruta_repo_prueba)
     assert len(tareas) == cantidad_antes - 1
+
+
+def test_index_muestra_el_nombre_completo_del_curso(cliente_de_prueba):
+    cliente, _ = cliente_de_prueba
+    cuerpo = cliente.get("/").get_data(as_text=True)
+
+    assert "Diseño de Algoritmos" in cuerpo
+
+
+def test_rendimiento_muestra_graficas_y_tabla_con_historial(cliente_de_prueba):
+    cliente, _ = cliente_de_prueba
+    respuesta = cliente.get("/rendimiento")
+
+    assert respuesta.status_code == 200
+    cuerpo = respuesta.get_data(as_text=True)
+    assert "<svg" in cuerpo
+    assert "2026-07-17" in cuerpo
+    assert "OVERREACHING" in cuerpo
+
+
+def test_rendimiento_sin_historial_muestra_mensaje(cliente_de_prueba, tmp_path, monkeypatch):
+    cliente, _ = cliente_de_prueba
+    monkeypatch.setattr(modulo_interfaz, "RUTA_HISTORIAL_POR_DEFECTO", str(tmp_path / "no_existe.csv"))
+
+    cuerpo = cliente.get("/rendimiento").get_data(as_text=True)
+
+    assert "Todavia no hay historial" in cuerpo

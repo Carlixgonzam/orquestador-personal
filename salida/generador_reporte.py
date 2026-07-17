@@ -22,9 +22,15 @@ def generar_contenido_reporte(
     resultado: ResultadoPriorizacion,
     estado_fisiologico: EstadoFisiologico,
     horario_hoy: HorarioHoy,
+    nombres_cursos: dict[str, str] | None = None,
 ) -> str:
     plantilla = _entorno_plantillas().get_template(NOMBRE_PLANTILLA_REPORTE_DIARIO)
-    return plantilla.render(resultado=resultado, estado=estado_fisiologico, horario=horario_hoy)
+    return plantilla.render(
+        resultado=resultado,
+        estado=estado_fisiologico,
+        horario=horario_hoy,
+        nombres_cursos=nombres_cursos or {},
+    )
 
 
 def generar_reporte(
@@ -32,8 +38,9 @@ def generar_reporte(
     estado_fisiologico: EstadoFisiologico,
     horario_hoy: HorarioHoy,
     ruta_salida: str = "hoy.md",
+    nombres_cursos: dict[str, str] | None = None,
 ) -> str:
-    contenido = generar_contenido_reporte(resultado, estado_fisiologico, horario_hoy)
+    contenido = generar_contenido_reporte(resultado, estado_fisiologico, horario_hoy, nombres_cursos)
     with open(ruta_salida, "w", encoding="utf-8") as archivo_salida:
         archivo_salida.write(contenido)
     return ruta_salida

@@ -75,6 +75,23 @@ def test_generar_contenido_reporte_incluye_recomendacion_de_entrenamiento():
     assert "Se reemplaza por recuperacion activa" in contenido
 
 
+def test_generar_contenido_reporte_usa_nombre_completo_del_curso_cuando_hay_mapeo():
+    asignaciones = [AsignacionHueco(HuecoLibre("miercoles", time(9, 20), time(14, 0)), TAREA_PRUEBA)]
+    resultado = ResultadoPriorizacion(None, asignaciones, None, [])
+    nombres_cursos = {"algoritmos": "Diseño de Algoritmos"}
+
+    contenido = generar_contenido_reporte(resultado, ESTADO_PRUEBA, HORARIO_MIERCOLES, nombres_cursos)
+
+    assert "Diseño de Algoritmos" in contenido
+
+
+def test_generar_contenido_reporte_usa_el_slug_si_no_hay_mapeo_de_nombres():
+    resultado = ResultadoPriorizacion(BLOQUE_MOVILES, [], None, [])
+    contenido = generar_contenido_reporte(resultado, ESTADO_PRUEBA, HORARIO_MIERCOLES)
+
+    assert "moviles" in contenido
+
+
 def test_generar_reporte_escribe_el_archivo_en_disco(tmp_path):
     resultado = ResultadoPriorizacion(None, [], None, [])
     ruta_salida = tmp_path / "hoy.md"
