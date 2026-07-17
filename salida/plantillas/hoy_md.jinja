@@ -1,4 +1,4 @@
-# Reporte del dia — {{ horario.dia_semana | capitalize }} {{ estado.momento.strftime('%Y-%m-%d') }}
+# Reporte del dia — {{ horario.dia_semana | capitalize }} {{ fecha.strftime('%Y-%m-%d') }}
 
 ## Horario fijo de hoy
 
@@ -19,6 +19,7 @@ Estas dentro de un bloque fijo: {{ nombres_cursos.get(resultado.bloque_fijo_acti
 {% else %}
 ## Estado fisiologico
 
+{% if estado %}
 - Disposicion para entrenar: {{ estado.training_readiness }}
 - Estado de entrenamiento: {{ estado.training_status }}
 - HRV: {{ estado.hrv_status }}{% if estado.hrv_valor_ms is not none %} ({{ estado.hrv_valor_ms }} ms, tendencia {{ estado.hrv_tendencia }}){% endif %}
@@ -41,6 +42,9 @@ Estas dentro de un bloque fijo: {{ nombres_cursos.get(resultado.bloque_fijo_acti
 {% endif %}
 {% if estado.endurance_score is not none %}
 - Score de resistencia: {{ estado.endurance_score }}
+{% endif %}
+{% else %}
+No disponible hoy (ver Alertas abajo).
 {% endif %}
 
 {% if resultado.alertas %}

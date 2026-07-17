@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestador personal — Entrenamiento</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+<main>
+  <h1>Orquestador personal</h1>
+  <nav>
+    <a href="/">Hoy y tareas</a>
+    <a href="/rendimiento">Rendimiento</a>
+    <a href="/entrenamiento">Entrenamiento</a>
+  </nav>
+
+  <section>
+    <h2>Plan de la semana actual ({{ nombre_archivo }})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Intensidad</th>
+          <th>Notas</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for indice, sesion in sesiones %}
+        <tr>
+          <td>{{ sesion.fecha }}</td>
+          <td>{{ sesion.tipo }}</td>
+          <td><span class="etiqueta etiqueta-{{ "alta" if sesion.intensidad == "alta" else ("baja" if sesion.intensidad == "baja" else "media") }}">{{ sesion.intensidad }}</span></td>
+          <td>{{ sesion.notas }}</td>
+          <td class="fila-acciones">
+            <a href="/entrenamiento/{{ indice }}/editar"><button type="button" class="boton-secundario">Editar</button></a>
+            <form method="post" action="/entrenamiento/{{ indice }}/eliminar">
+              <button type="submit" class="boton-secundario">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Agregar sesion</h2>
+    <form class="formulario-tarea" method="post" action="/entrenamiento">
+      <label>Fecha
+        <input type="date" name="fecha" required>
+      </label>
+      <label>Tipo
+        <select name="tipo" required>
+          <option value="natacion">Natacion</option>
+          <option value="ciclismo">Ciclismo</option>
+          <option value="running">Running</option>
+          <option value="gimnasio">Gimnasio</option>
+          <option value="descanso">Descanso</option>
+        </select>
+      </label>
+      <label>Intensidad
+        <select name="intensidad" required>
+          <option value="alta">Alta</option>
+          <option value="moderada">Moderada</option>
+          <option value="baja">Baja</option>
+        </select>
+      </label>
+      <label>Notas
+        <input type="text" name="notas">
+      </label>
+      <button type="submit">Agregar sesion</button>
+    </form>
+  </section>
+</main>
+</body>
+</html>

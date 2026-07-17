@@ -64,6 +64,12 @@ def actualizar_estado_tarea(ruta_repo_pendientes: str, indice: int, nuevo_estado
     guardar_todas_las_tareas(ruta_repo_pendientes, tareas)
 
 
+def actualizar_tarea(ruta_repo_pendientes: str, indice: int, tarea_actualizada: Tarea) -> None:
+    tareas = cargar_todas_las_tareas(ruta_repo_pendientes)
+    tareas[indice] = tarea_actualizada
+    guardar_todas_las_tareas(ruta_repo_pendientes, tareas)
+
+
 def eliminar_tarea(ruta_repo_pendientes: str, indice: int) -> None:
     tareas = cargar_todas_las_tareas(ruta_repo_pendientes)
     del tareas[indice]

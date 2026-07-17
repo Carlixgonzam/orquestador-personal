@@ -5,7 +5,7 @@ from modelo.estado_fisiologico import EstadoFisiologico
 from modelo.hueco_libre import HuecoLibre
 from modelo.sesion_entrenamiento import SesionEntrenamiento
 from modelo.tarea import Tarea
-from motor.priorizador import HorarioHoy, decidir_hoy
+from motor.priorizador import HorarioHoy, decidir_hoy, decidir_hoy_sin_garmin
 from motor.recomendador_entrenamiento import MANTENER, RECUPERACION_ACTIVA, REDUCIR_INTENSIDAD
 
 BLOQUE_MOVILES = BloqueFijo("miercoles", time(8, 0), time(9, 20), "clase", "moviles", "ISIS3510")
@@ -169,3 +169,38 @@ def test_prioridad_regla_2_sobre_regla_3_cuando_ambas_aplican():
     tareas_asignadas = [asignacion.tarea for asignacion in resultado.asignaciones if asignacion.tarea]
     assert all(tarea.energia_requerida == "baja" for tarea in tareas_asignadas)
     assert resultado.recomendacion_entrenamiento.tipo_ajuste == RECUPERACION_ACTIVA
+
+
+def test_decidir_hoy_sin_garmin_respeta_bloque_fijo_activo():
+    momento = datetime(2026, 8, 3, 6, 30)
+    resultado = decidir_hoy_sin_garmin(TAREAS_MIXTAS, HORARIO_LUNES_MATUTINO, momento)
+
+    assert resultado.bloque_fijo_activo is not None
+    assert resultado.bloque_fijo_activo.nombre == "natacion"
+    assert resultado.asignaciones == []
+    assert resultado.alertas == []
+
+
+def test_decidir_hoy_sin_garmin_asigna_todas_las_tareas_sin_filtrar_por_energia():
+    momento = datetime(2026, 8, 5, 10, 0)
+    resultado = decidir_hoy_sin_garmin(TAREAS_MIXTAS, HORARIO_MIERCOLES, momento)
+
+    tareas_asignadas = [asignacion.tarea for asignacion in resultado.asignaciones if asignacion.tarea]
+    niveles_energia = {tarea.energia_requerida for tarea in tareas_asignadas}
+    assert len(niveles_energia) > 1
+    assert resultado.alertas != []
+
+
+def test_decidir_hoy_sin_garmin_ordena_por_deadline_y_peso():
+    momento = datetime(2026, 8, 5, 10, 0)
+    resultado = decidir_hoy_sin_garmin(TAREAS_MIXTAS, HORARIO_MIERCOLES, momento)
+
+    assert resultado.asignaciones[0].tarea.titulo == "alta_cercana"
+
+
+def test_decidir_hoy_sin_garmin_mantiene_la_sesion_planeada_por_defecto():
+    momento = datetime(2026, 8, 5, 10, 0)
+    resultado = decidir_hoy_sin_garmin(TAREAS_MIXTAS, HORARIO_MIERCOLES, momento, sesion_planeada_hoy=SESION_PLANEADA)
+
+    assert resultado.recomendacion_entrenamiento.tipo_ajuste == MANTENER
+    assert resultado.recomendacion_entrenamiento.sesion_planeada == SESION_PLANEADA

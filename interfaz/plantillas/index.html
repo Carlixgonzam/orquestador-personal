@@ -12,6 +12,7 @@
   <nav>
     <a href="/">Hoy y tareas</a>
     <a href="/rendimiento">Rendimiento</a>
+    <a href="/entrenamiento">Entrenamiento</a>
   </nav>
 
   <section>
@@ -48,6 +49,7 @@
           <td>{{ tarea.peso_academico | int }}</td>
           <td>{{ tarea.estado }}</td>
           <td class="fila-acciones">
+            <a href="/tareas/{{ indice }}/editar"><button type="button" class="boton-secundario">Editar</button></a>
             {% if tarea.estado != "completada" %}
             <form method="post" action="/tareas/{{ indice }}/completar">
               <button type="submit" class="boton-secundario">Completar</button>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestador personal — Editar tarea</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+<main>
+  <h1>Orquestador personal</h1>
+  <nav>
+    <a href="/">Hoy y tareas</a>
+    <a href="/rendimiento">Rendimiento</a>
+  </nav>
+
+  <section>
+    <h2>Editar tarea</h2>
+    <form class="formulario-tarea" method="post" action="/tareas/{{ indice }}/editar">
+      <label>Curso
+        <select name="curso" required>
+          {% for curso_slug, nombre_completo in nombres_cursos.items() %}
+          <option value="{{ curso_slug }}" {% if curso_slug == tarea.curso %}selected{% endif %}>{{ nombre_completo }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Titulo
+        <input type="text" name="titulo" value="{{ tarea.titulo }}" required>
+      </label>
+      <label>Deadline
+        <input type="date" name="fecha_limite" value="{{ tarea.fecha_limite }}" required>
+      </label>
+      <label>Energia requerida
+        <select name="energia_requerida" required>
+          <option value="alta" {% if tarea.energia_requerida == "alta" %}selected{% endif %}>Alta</option>
+          <option value="media" {% if tarea.energia_requerida == "media" %}selected{% endif %}>Media</option>
+          <option value="baja" {% if tarea.energia_requerida == "baja" %}selected{% endif %}>Baja</option>
+        </select>
+      </label>
+      <label>Creditos
+        <input type="number" name="peso_academico" value="{{ tarea.peso_academico | int }}" min="1" step="1" required>
+      </label>
+      <label>Estado
+        <select name="estado" required>
+          <option value="pendiente" {% if tarea.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+          <option value="en_progreso" {% if tarea.estado == "en_progreso" %}selected{% endif %}>En progreso</option>
+          <option value="completada" {% if tarea.estado == "completada" %}selected{% endif %}>Completada</option>
+        </select>
+      </label>
+      <button type="submit">Guardar cambios</button>
+    </form>
+  </section>
+</main>
+</body>
+</html>

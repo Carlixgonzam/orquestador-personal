@@ -11,7 +11,7 @@ from fuentes.horario_cliente import FIN_DIA, INICIO_DIA, calcular_huecos_libres,
 from fuentes.pendientes_cliente import cargar_tareas_pendientes
 from modelo.estado_fisiologico import EstadoFisiologico
 from modelo.hueco_libre import HuecoLibre
-from motor.priorizador import HorarioHoy, decidir_hoy
+from motor.priorizador import HorarioHoy, decidir_hoy, decidir_hoy_sin_garmin
 from salida.generador_reporte import generar_reporte
 
 RAIZ_DEL_PROYECTO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -139,27 +139,40 @@ def ejecutar(
     nombres_cursos = cargar_nombres_cursos(ruta_config)
 
     horario_hoy = construir_horario_hoy(ruta_config, fecha_referencia)
-
-    cliente_garmin = cliente_garmin or ClienteGarmin()
-    estado_fisiologico = construir_estado_fisiologico(cliente_garmin, fecha_referencia)
-    registrar_estado_fisiologico(ruta_historial, estado_fisiologico)
+    momento_actual = datetime.combine(fecha_referencia, datetime.now().time())
 
     tareas_pendientes = cargar_tareas_pendientes(rutas_repos["pendientes"])
 
     sesiones_semana = cargar_plan_semana_actual(rutas_repos["entrenamiento"], fecha_referencia)
     sesion_planeada_hoy = obtener_sesion_de_hoy(sesiones_semana, fecha_referencia)
 
-    resultado = decidir_hoy(
-        estado_fisiologico,
-        tareas_pendientes,
-        horario_hoy,
-        sesion_planeada_hoy=sesion_planeada_hoy,
-        acwr_limite=umbrales.get("acwr_limite", 1.5),
-        body_battery_bajo=umbrales.get("body_battery_bajo", 40),
-        body_battery_medio=umbrales.get("body_battery_medio", 70),
-    )
+    try:
+        cliente_garmin = cliente_garmin or ClienteGarmin()
+        estado_fisiologico = construir_estado_fisiologico(cliente_garmin, fecha_referencia)
+        registrar_estado_fisiologico(ruta_historial, estado_fisiologico)
+        resultado = decidir_hoy(
+            estado_fisiologico,
+            tareas_pendientes,
+            horario_hoy,
+            sesion_planeada_hoy=sesion_planeada_hoy,
+            acwr_limite=umbrales.get("acwr_limite", 1.5),
+            body_battery_bajo=umbrales.get("body_battery_bajo", 40),
+            body_battery_medio=umbrales.get("body_battery_medio", 70),
+        )
+    except Exception as error:
+        estado_fisiologico = None
+        resultado = decidir_hoy_sin_garmin(tareas_pendientes, horario_hoy, momento_actual, sesion_planeada_hoy)
+        if resultado.bloque_fijo_activo is None:
+            resultado.alertas.append(f"Detalle del error: {error}")
 
-    return generar_reporte(resultado, estado_fisiologico, horario_hoy, ruta_salida=ruta_salida, nombres_cursos=nombres_cursos)
+    return generar_reporte(
+        resultado,
+        estado_fisiologico,
+        horario_hoy,
+        ruta_salida=ruta_salida,
+        nombres_cursos=nombres_cursos,
+        fecha=fecha_referencia,
+    )
 
 
 if __name__ == "__main__":

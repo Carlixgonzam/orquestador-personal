@@ -90,10 +90,11 @@ Esto levanta un servidor en `http://127.0.0.1:5050` (correrlo desde la raíz del
 
 - Ver el último `hoy.md` generado.
 - Regenerar el reporte con un botón (vuelve a llamar a Garmin y a las reglas de decisión).
-- Agregar una tarea nueva con un formulario (curso, título, deadline, energía requerida, créditos).
-- Marcar una tarea como completada o eliminarla.
+- Agregar, **editar** o eliminar una tarea con un formulario (curso, título, deadline, energía requerida, créditos, estado).
+- Marcar una tarea como completada.
 - Ver, debajo de cada tarea, los hallazgos marcados con `\begin{alertbox}...\end{alertbox}` o `\begin{examenbox}...\end{examenbox}` en el repo de notas del curso correspondiente (si ese repo existe localmente). Estos son entornos de `preamble.sty`, la plantilla LaTeX real de las notas.
 - Ver una página de **Rendimiento** (`/rendimiento`) con gráficas de tendencia (disposición para entrenar, body battery, HRV, ACWR) y una tabla del historial completo.
+- Ver y editar el **plan de entrenamiento de la semana actual** (`/entrenamiento`): agregar, editar o eliminar sesiones de `plan-semana-XX.yaml` sin tocar el YAML a mano. Solo opera sobre la semana en curso (según la fecha de hoy).
 
 Los nombres de curso que se muestran (en la tabla de tareas, el dropdown y el reporte) vienen de `nombres_cursos` en `config/config.yaml` — el `curso` interno de cada tarea sigue siendo el slug corto (`algoritmos`, `moviles`, etc.), que es el que conecta con `pendientes/tareas.yaml` y los repos `notas-*`.
 
@@ -102,6 +103,10 @@ Es un servidor de desarrollo Flask pensado para uso local y personal, no para ex
 ## Historial y gráficas de rendimiento
 
 Cada vez que corre `ejecutar_diario.py` (local o vía el Action), se agrega o actualiza una fila del día en `historial/historial_fisiologico.csv` (una fila por fecha, se sobrescribe si ya corriste ese día). Ese archivo alimenta las gráficas de `/rendimiento` en la interfaz — no hace falta ninguna base de datos ni dependencia externa, es CSV plano y las gráficas son SVG generado en Python.
+
+## Modo de respaldo sin Garmin
+
+Si Garmin falla por cualquier motivo (login, red, mantenimiento del lado de Garmin, credenciales vencidas), `ejecutar_diario.py` no se cae: genera igual un `hoy.md` con todas las tareas pendientes ordenadas por deadline y peso académico (sin el matching fino por energía, que depende de datos fisiológicos), mantiene la sesión de entrenamiento planeada sin ajustes, y agrega una alerta con el detalle del error para que sepas qué pasó. Las reglas de bloque fijo siguen aplicando igual (si estás en clase ahora mismo, eso no depende de Garmin). Esto también protege el botón "Regenerar con Garmin" de la interfaz: si Garmin falla, ya no lanza un error 500, muestra el reporte de respaldo.
 
 ## Cómo correr los tests
 

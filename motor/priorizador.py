@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 from modelo.bloque_fijo import BloqueFijo
 from modelo.estado_fisiologico import EstadoFisiologico
@@ -109,3 +110,20 @@ def decidir_hoy(
     tareas_candidatas = _ordenar_tareas(_tareas_por_nivel_energia(tareas_pendientes, nivel_energia))
     asignaciones = _repartir_tareas_en_huecos(tareas_candidatas, horario_hoy.huecos_libres)
     return ResultadoPriorizacion(None, asignaciones, recomendacion_entrenamiento, [])
+
+
+def decidir_hoy_sin_garmin(
+    tareas_pendientes: list[Tarea],
+    horario_hoy: HorarioHoy,
+    momento: datetime,
+    sesion_planeada_hoy: SesionEntrenamiento | None = None,
+) -> ResultadoPriorizacion:
+    bloque_activo = reglas_bloqueo.hay_bloque_fijo_activo(momento, horario_hoy.bloques_fijos)
+    if bloque_activo is not None:
+        return ResultadoPriorizacion(bloque_activo, [], None, [])
+
+    alertas = ["Garmin no disponible: mostrando tareas academicas por deadline, sin ajuste fisiologico"]
+    recomendacion_entrenamiento = decidir_ajuste_entrenamiento("desconocido", sesion_planeada_hoy, acwr_alto=False)
+    tareas_candidatas = _ordenar_tareas(tareas_pendientes)
+    asignaciones = _repartir_tareas_en_huecos(tareas_candidatas, horario_hoy.huecos_libres)
+    return ResultadoPriorizacion(None, asignaciones, recomendacion_entrenamiento, alertas)

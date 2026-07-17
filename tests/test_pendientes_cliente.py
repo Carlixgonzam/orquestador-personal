@@ -5,6 +5,7 @@ from datetime import date
 from fuentes.pendientes_cliente import (
     agregar_tarea,
     actualizar_estado_tarea,
+    actualizar_tarea,
     cargar_tareas_pendientes,
     cargar_todas_las_tareas,
     eliminar_tarea,
@@ -81,6 +82,27 @@ def test_actualizar_estado_tarea_modifica_solo_la_tarea_indicada(tmp_path):
     tareas = cargar_todas_las_tareas(ruta_repo_prueba)
     assert tareas[0].estado == "completada"
     assert tareas[1].estado != "completada"
+
+
+def test_actualizar_tarea_reemplaza_todos_los_campos_de_la_tarea_indicada(tmp_path):
+    ruta_repo_prueba = _construir_repo_pendientes_de_prueba(tmp_path)
+    tarea_editada = Tarea("web", "Titulo editado", date(2026, 10, 1), "baja", 4.0, "en_progreso")
+
+    actualizar_tarea(ruta_repo_prueba, 0, tarea_editada)
+
+    tareas = cargar_todas_las_tareas(ruta_repo_prueba)
+    assert tareas[0] == tarea_editada
+
+
+def test_actualizar_tarea_no_afecta_las_demas_tareas(tmp_path):
+    ruta_repo_prueba = _construir_repo_pendientes_de_prueba(tmp_path)
+    tareas_antes = cargar_todas_las_tareas(ruta_repo_prueba)
+    tarea_editada = Tarea("web", "Titulo editado", date(2026, 10, 1), "baja", 4.0, "en_progreso")
+
+    actualizar_tarea(ruta_repo_prueba, 0, tarea_editada)
+
+    tareas_despues = cargar_todas_las_tareas(ruta_repo_prueba)
+    assert tareas_despues[1:] == tareas_antes[1:]
 
 
 def test_eliminar_tarea_remueve_solo_la_tarea_indicada(tmp_path):

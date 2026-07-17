@@ -92,6 +92,24 @@ def test_generar_contenido_reporte_usa_el_slug_si_no_hay_mapeo_de_nombres():
     assert "moviles" in contenido
 
 
+def test_generar_contenido_reporte_con_estado_none_muestra_mensaje_de_no_disponible():
+    resultado = ResultadoPriorizacion(None, [], None, ["Garmin no disponible: modo de respaldo activo"])
+
+    contenido = generar_contenido_reporte(resultado, None, HORARIO_MIERCOLES, fecha=date(2026, 8, 5))
+
+    assert "No disponible hoy" in contenido
+    assert "Garmin no disponible" in contenido
+    assert "Disposicion para entrenar" not in contenido
+
+
+def test_generar_contenido_reporte_con_estado_none_usa_la_fecha_explicita_en_el_titulo():
+    resultado = ResultadoPriorizacion(None, [], None, [])
+
+    contenido = generar_contenido_reporte(resultado, None, HORARIO_MIERCOLES, fecha=date(2026, 8, 5))
+
+    assert "2026-08-05" in contenido
+
+
 def test_generar_reporte_escribe_el_archivo_en_disco(tmp_path):
     resultado = ResultadoPriorizacion(None, [], None, [])
     ruta_salida = tmp_path / "hoy.md"

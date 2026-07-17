@@ -158,3 +158,26 @@ def test_ejecutar_genera_el_reporte_de_punta_a_punta(tmp_path, cliente_garmin_fa
     assert "Entrenamiento de hoy" in contenido
     assert ruta_historial.exists()
     assert "Estado fisiologico" in contenido
+
+
+def test_ejecutar_con_garmin_caido_genera_reporte_de_respaldo(tmp_path):
+    ruta_config_prueba = _construir_ruta_config_de_prueba(tmp_path)
+    ruta_salida = tmp_path / "hoy.md"
+    ruta_historial = tmp_path / "historial.csv"
+    cliente_garmin_que_falla = MagicMock()
+    cliente_garmin_que_falla.obtener_disposicion_entrenamiento.side_effect = ConnectionError("fallo de red simulado")
+
+    ejecutar(
+        fecha=FECHA_PRUEBA,
+        ruta_config=ruta_config_prueba,
+        ruta_salida=str(ruta_salida),
+        ruta_historial=str(ruta_historial),
+        cliente_garmin=cliente_garmin_que_falla,
+    )
+
+    contenido = ruta_salida.read_text(encoding="utf-8")
+    assert "Reporte del dia" in contenido
+    assert "Garmin no disponible" in contenido
+    assert "fallo de red simulado" in contenido
+    assert "No disponible hoy" in contenido
+    assert not ruta_historial.exists()
