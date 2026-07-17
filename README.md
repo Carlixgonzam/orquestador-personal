@@ -48,6 +48,8 @@ Dentro de cada nivel de energía, las tareas se ordenan por cercanía del deadli
 - `GARMIN_EMAIL`: correo de la cuenta de Garmin Connect.
 - `GARMIN_PASSWORD`: contraseña de la cuenta de Garmin Connect.
 
+Copia `.env.example` a `.env` (en la raíz del repo) y pon ahí tus credenciales reales — `.env` está en `.gitignore`, nunca se sube. Se carga automáticamente (vía `python-dotenv`) cada vez que el sistema necesita hablar con Garmin, así que no hace falta exportar nada a mano en cada terminal nueva. Si prefieres no usar `.env`, exportar `GARMIN_EMAIL`/`GARMIN_PASSWORD` en la sesión de shell también funciona (tiene prioridad si ambos están definidos).
+
 El token de sesión se guarda localmente en `~/.orquestador_personal/token_garmin` después del primer login, para no reautenticar en cada corrida.
 
 ### config/config.yaml

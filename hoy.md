@@ -21,7 +21,7 @@ Sin bloques fijos hoy.
 
 ## Tareas recomendadas por hueco libre
 
-- 00:00-23:59: matematica — EJEMPLO - reemplaza con tu tarea real (energia baja, deadline 2026-08-07, peso 3.0)
+- 00:00-23:59: Matemática Estructural — EJEMPLO - reemplaza con tu tarea real (energia baja, deadline 2026-08-07, peso 3.0)
 
 ## Entrenamiento de hoy
 

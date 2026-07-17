@@ -2,6 +2,7 @@ import os
 from datetime import date
 
 import garminconnect
+from dotenv import load_dotenv
 
 RUTA_TOKEN_POR_DEFECTO = os.path.expanduser("~/.orquestador_personal/token_garmin")
 
@@ -16,6 +17,7 @@ class ClienteGarmin:
         self.cliente_garmin = cliente_garmin or self._autenticar()
 
     def _autenticar(self):
+        load_dotenv()
         correo = os.environ["GARMIN_EMAIL"]
         contrasena = os.environ["GARMIN_PASSWORD"]
         os.makedirs(os.path.dirname(self.ruta_token), exist_ok=True)
