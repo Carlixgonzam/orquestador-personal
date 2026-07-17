@@ -1,6 +1,6 @@
 # orquestador-personal
 
-Sistema de orquestación personal que decide, cada día, qué tareas académicas hacer según mi estado fisiológico (medido con Garmin), respetando mi horario fijo de clases y entrenamiento de natación en la Universidad de los Andes.
+Sistema de orquestación personal que decide, cada día, qué tareas académicas hacer según mi estado fisiológico (medido con Garmin), respetando mi horario fijo de clases y entrenamiento de natación.
 
 El sistema lee mi disposición para entrenar, HRV, estado de entrenamiento, ACWR, body battery y otras métricas de Garmin Connect, las cruza con mis tareas académicas pendientes y mi plan de entrenamiento de la semana, y genera un archivo `hoy.md` con las tareas recomendadas por cada hueco libre del día y una recomendación de entrenamiento.
 
