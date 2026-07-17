@@ -1,6 +1,11 @@
 import os
 
-from fuentes.notas_cliente import escanear_repo_notas, escanear_todos_los_repos_notas
+from fuentes.notas_cliente import (
+    curso_desde_nombre_repo_notas,
+    escanear_repo_notas,
+    escanear_todos_los_repos_notas,
+    hallazgos_por_curso,
+)
 
 RUTA_NOTAS_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "notas_mock")
 RUTA_REPO_ALGORITMOS = os.path.join(RUTA_NOTAS_MOCK, "notas-algoritmos")
@@ -38,3 +43,24 @@ def test_escanear_todos_los_repos_notas_combina_existentes_e_inexistentes():
 
     assert len(hallazgos) == 2
     assert all(hallazgo.repo == "notas-algoritmos" for hallazgo in hallazgos)
+
+
+def test_curso_desde_nombre_repo_notas_caso_simple():
+    assert curso_desde_nombre_repo_notas("notas-algoritmos") == "algoritmos"
+
+
+def test_curso_desde_nombre_repo_notas_con_guiones_multiples():
+    assert curso_desde_nombre_repo_notas("notas-gobierno-procesos") == "gobierno_procesos"
+
+
+def test_hallazgos_por_curso_agrupa_por_curso_derivado_del_nombre_del_repo():
+    repos_notas = [
+        {"nombre": "notas-algoritmos", "ruta_local": RUTA_REPO_ALGORITMOS},
+        {"nombre": "notas-que-no-existe", "ruta_local": RUTA_REPO_INEXISTENTE},
+    ]
+
+    resultado = hallazgos_por_curso(repos_notas)
+
+    assert set(resultado.keys()) == {"algoritmos", "que_no_existe"}
+    assert len(resultado["algoritmos"]) == 2
+    assert resultado["que_no_existe"] == []

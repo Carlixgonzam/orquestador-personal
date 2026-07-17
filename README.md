@@ -89,6 +89,7 @@ Esto levanta un servidor en `http://127.0.0.1:5050` (correrlo desde la raíz del
 - Regenerar el reporte con un botón (vuelve a llamar a Garmin y a las reglas de decisión).
 - Agregar una tarea nueva con un formulario (curso, título, deadline, energía requerida, créditos).
 - Marcar una tarea como completada o eliminarla.
+- Ver, debajo de cada tarea, los hallazgos marcados con `\begin{alertbox}...\end{alertbox}` o `\begin{examenbox}...\end{examenbox}` en el repo de notas del curso correspondiente (si ese repo existe localmente). Estos son entornos de `preamble.sty`, la plantilla LaTeX real de las notas.
 
 Es un servidor de desarrollo Flask pensado para uso local y personal, no para exponerlo a internet.
 

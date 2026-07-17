@@ -3,6 +3,7 @@ from datetime import date
 
 from flask import Flask, redirect, render_template, request, url_for
 
+from fuentes.notas_cliente import hallazgos_por_curso
 from fuentes.pendientes_cliente import (
     actualizar_estado_tarea,
     agregar_tarea,
@@ -18,6 +19,11 @@ app = Flask(__name__, template_folder="plantillas")
 def _ruta_repo_pendientes() -> str:
     configuracion = _cargar_configuracion(RUTA_CONFIG_POR_DEFECTO)
     return configuracion["rutas_repos"]["pendientes"]
+
+
+def _repos_notas() -> list[dict]:
+    configuracion = _cargar_configuracion(RUTA_CONFIG_POR_DEFECTO)
+    return configuracion.get("repos_notas", [])
 
 
 def _leer_contenido_hoy() -> str:
@@ -38,6 +44,7 @@ def index():
         "index.html",
         tareas=_tareas_ordenadas_por_deadline_con_indice(),
         contenido_hoy=_leer_contenido_hoy(),
+        hallazgos_por_curso=hallazgos_por_curso(_repos_notas()),
     )
 
 

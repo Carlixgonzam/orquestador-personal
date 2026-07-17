@@ -7,6 +7,7 @@ import interfaz.app as modulo_interfaz
 from fuentes.pendientes_cliente import cargar_todas_las_tareas
 
 RUTA_REPO_PENDIENTES_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "pendientes_mock")
+RUTA_REPO_NOTAS_ALGORITMOS_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "notas_mock", "notas-algoritmos")
 
 
 @pytest.fixture
@@ -15,6 +16,11 @@ def cliente_de_prueba(tmp_path, monkeypatch):
     shutil.copytree(RUTA_REPO_PENDIENTES_MOCK, ruta_repo_prueba)
     monkeypatch.setattr(modulo_interfaz, "_ruta_repo_pendientes", lambda: str(ruta_repo_prueba))
     monkeypatch.setattr(modulo_interfaz, "_leer_contenido_hoy", lambda: "reporte de prueba")
+    monkeypatch.setattr(
+        modulo_interfaz,
+        "_repos_notas",
+        lambda: [{"nombre": "notas-algoritmos", "ruta_local": RUTA_REPO_NOTAS_ALGORITMOS_MOCK}],
+    )
     modulo_interfaz.app.config["TESTING"] = True
     return modulo_interfaz.app.test_client(), str(ruta_repo_prueba)
 
@@ -27,6 +33,15 @@ def test_index_muestra_las_tareas_existentes(cliente_de_prueba):
     cuerpo = respuesta.get_data(as_text=True)
     assert "Taller 3 de grafos" in cuerpo
     assert "reporte de prueba" in cuerpo
+
+
+def test_index_muestra_hallazgos_de_notas_para_el_curso_de_la_tarea(cliente_de_prueba):
+    cliente, _ = cliente_de_prueba
+    respuesta = cliente.get("/")
+
+    cuerpo = respuesta.get_data(as_text=True)
+    assert "Dijkstra no funciona con pesos negativos" in cuerpo
+    assert "Cae complejidad de Floyd-Warshall" in cuerpo
 
 
 def test_crear_tarea_la_agrega_al_repo(cliente_de_prueba):

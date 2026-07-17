@@ -16,6 +16,8 @@
     --alta: #c0532c;
     --media: #b8862f;
     --baja: #3d6a5c;
+    --important: #4a5a8c;
+    --examen: #8c4a6e;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -28,6 +30,8 @@
       --alta: #e08a63;
       --media: #e0b866;
       --baja: #7fb8a4;
+      --important: #8b9cd6;
+      --examen: #d68bb2;
     }
   }
   * { box-sizing: border-box; }
@@ -100,6 +104,18 @@
   .etiqueta-alta { background: var(--alta); }
   .etiqueta-media { background: var(--media); }
   .etiqueta-baja { background: var(--baja); }
+  .etiqueta-nota-important { background: var(--important); }
+  .etiqueta-nota-examen { background: var(--examen); }
+  .fila-notas td {
+    padding-top: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--borde);
+  }
+  .hallazgo-nota {
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+    padding: 0.15rem 0;
+  }
   form.formulario-tarea {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -197,6 +213,19 @@
             </form>
           </td>
         </tr>
+        {% set hallazgos_curso = hallazgos_por_curso.get(tarea.curso, []) %}
+        {% if hallazgos_curso %}
+        <tr class="fila-notas">
+          <td colspan="7">
+            {% for hallazgo in hallazgos_curso %}
+            <div class="hallazgo-nota">
+              <span class="etiqueta etiqueta-nota-{{ hallazgo.macro }}">{{ hallazgo.macro }}</span>
+              {{ hallazgo.contenido }}
+            </div>
+            {% endfor %}
+          </td>
+        </tr>
+        {% endif %}
         {% endfor %}
       </tbody>
     </table>
