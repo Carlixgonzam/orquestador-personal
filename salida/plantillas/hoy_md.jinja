@@ -1,0 +1,80 @@
+# Reporte del dia — {{ horario.dia_semana | capitalize }} {{ estado.momento.strftime('%Y-%m-%d') }}
+
+## Horario fijo de hoy
+
+{% if horario.bloques_fijos %}
+{% for bloque in horario.bloques_fijos | sort(attribute='hora_inicio') %}
+- {{ bloque.hora_inicio.strftime('%H:%M') }}-{{ bloque.hora_fin.strftime('%H:%M') }} {{ bloque.tipo }}: {{ bloque.nombre }}{% if bloque.codigo %} ({{ bloque.codigo }}){% endif %}
+
+{% endfor %}
+{% else %}
+Sin bloques fijos hoy.
+
+{% endif %}
+
+{% if resultado.bloque_fijo_activo %}
+## Ahora mismo
+
+Estas dentro de un bloque fijo: {{ resultado.bloque_fijo_activo.nombre }} ({{ resultado.bloque_fijo_activo.hora_inicio.strftime('%H:%M') }}-{{ resultado.bloque_fijo_activo.hora_fin.strftime('%H:%M') }}). No hay recomendaciones adicionales mientras dure este bloque.
+{% else %}
+## Estado fisiologico
+
+- Disposicion para entrenar: {{ estado.training_readiness }}
+- Estado de entrenamiento: {{ estado.training_status }}
+- HRV: {{ estado.hrv_status }}{% if estado.hrv_valor_ms is not none %} ({{ estado.hrv_valor_ms }} ms, tendencia {{ estado.hrv_tendencia }}){% endif %}
+
+- Body battery: {{ estado.body_battery }}
+{% if estado.acwr is not none %}
+- ACWR: {{ estado.acwr }}
+{% endif %}
+{% if estado.frecuencia_cardiaca_reposo is not none %}
+- Frecuencia cardiaca en reposo: {{ estado.frecuencia_cardiaca_reposo }}
+{% endif %}
+{% if estado.frecuencia_respiratoria is not none %}
+- Frecuencia respiratoria: {{ estado.frecuencia_respiratoria }}
+{% endif %}
+{% if estado.estres_promedio is not none %}
+- Estres promedio: {{ estado.estres_promedio }}
+{% endif %}
+{% if estado.vo2_max is not none %}
+- VO2 max: {{ estado.vo2_max }}
+{% endif %}
+{% if estado.endurance_score is not none %}
+- Score de resistencia: {{ estado.endurance_score }}
+{% endif %}
+
+{% if resultado.alertas %}
+## Alertas
+
+{% for alerta in resultado.alertas %}
+- {{ alerta }}
+
+{% endfor %}
+{% endif %}
+
+## Tareas recomendadas por hueco libre
+
+{% if resultado.asignaciones %}
+{% for asignacion in resultado.asignaciones %}
+- {{ asignacion.hueco.hora_inicio.strftime('%H:%M') }}-{{ asignacion.hueco.hora_fin.strftime('%H:%M') }}: {% if asignacion.tarea %}{{ asignacion.tarea.curso }} — {{ asignacion.tarea.titulo }} (energia {{ asignacion.tarea.energia_requerida }}, deadline {{ asignacion.tarea.fecha_limite.strftime('%Y-%m-%d') }}, peso {{ asignacion.tarea.peso_academico }}){% else %}sin tarea pendiente que asignar{% endif %}
+
+{% endfor %}
+{% else %}
+No hay huecos libres hoy.
+
+{% endif %}
+
+## Entrenamiento de hoy
+
+{% if resultado.recomendacion_entrenamiento %}
+{% if resultado.recomendacion_entrenamiento.sesion_planeada %}
+- Sesion planeada: {{ resultado.recomendacion_entrenamiento.sesion_planeada.tipo }} ({{ resultado.recomendacion_entrenamiento.sesion_planeada.intensidad }}) — {{ resultado.recomendacion_entrenamiento.sesion_planeada.notas }}
+- Ajuste recomendado: {{ resultado.recomendacion_entrenamiento.tipo_ajuste }}
+- {{ resultado.recomendacion_entrenamiento.justificacion }}
+{% else %}
+- {{ resultado.recomendacion_entrenamiento.justificacion }}
+{% endif %}
+{% else %}
+- Sin informacion de entrenamiento disponible.
+{% endif %}
+{% endif %}

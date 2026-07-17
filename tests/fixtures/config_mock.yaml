@@ -1,0 +1,27 @@
+zona_horaria: "America/Bogota"
+
+umbrales:
+  acwr_limite: 1.5
+  body_battery_bajo: 40
+  body_battery_medio: 70
+
+bloques_fijos:
+  - dia_semana: lunes
+    hora_inicio: "06:00"
+    hora_fin: "07:50"
+    tipo: entrenamiento
+    nombre: natacion
+
+  - dia_semana: lunes
+    hora_inicio: "08:00"
+    hora_fin: "09:20"
+    tipo: clase
+    nombre: moviles
+    codigo: ISIS3510
+
+  - dia_semana: martes
+    hora_inicio: "14:00"
+    hora_fin: "15:20"
+    tipo: clase
+    nombre: fisica2
+    codigo: FISI1528P

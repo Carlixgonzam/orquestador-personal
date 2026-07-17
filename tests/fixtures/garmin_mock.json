@@ -1,0 +1,76 @@
+{
+  "training_readiness": [
+    {
+      "score": 78,
+      "level": "HIGH",
+      "feedbackLong": "TRAINING_READINESS_HIGH"
+    }
+  ],
+  "hrv_data": {
+    "hrvSummary": {
+      "status": "BALANCED",
+      "lastNightAvg": 55,
+      "weeklyAvg": 52
+    }
+  },
+  "training_status": {
+    "mostRecentTrainingStatus": {
+      "latestTrainingStatusData": {
+        "12345": {
+          "trainingStatus": "PRODUCTIVE"
+        }
+      }
+    },
+    "mostRecentTrainingLoadBalance": {
+      "acwrPercent": 118,
+      "acwrStatus": "OPTIMAL"
+    }
+  },
+  "max_metrics": [
+    {
+      "generic": {
+        "vo2MaxValue": 48.5
+      }
+    }
+  ],
+  "endurance_score": {
+    "overallScore": 62
+  },
+  "race_predictions": {
+    "time5K": 1320,
+    "time10K": 2750,
+    "timeHalfMarathon": 6100,
+    "timeMarathon": 12800
+  },
+  "rhr_day": {
+    "allMetrics": {
+      "metricsMap": {
+        "WELLNESS_RESTING_HEART_RATE": [
+          {
+            "value": 48
+          }
+        ]
+      }
+    }
+  },
+  "respiration_data": {
+    "avgWakingRespirationValue": 14.5
+  },
+  "stress_data": {
+    "avgStressLevel": 32,
+    "maxStressLevel": 70
+  },
+  "body_battery_events": [
+    {
+      "eventType": "SLEEP",
+      "bodyBatteryImpact": 45
+    }
+  ],
+  "body_battery": [
+    {
+      "charged": 60,
+      "drained": 40,
+      "bodyBatteryValuesArray": []
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+zona_horaria: "America/Bogota"
+
+umbrales:
+  acwr_limite: 1.5
+  body_battery_bajo: 40
+  body_battery_medio: 70
+
+bloques_fijos:
+  - dia_semana: lunes
+    hora_inicio: "06:00"
+    hora_fin: "07:50"
+    tipo: entrenamiento
+    nombre: natacion
+
+  - dia_semana: lunes
+    hora_inicio: "08:00"
+    hora_fin: "09:20"
+    tipo: clase
+    nombre: moviles
+    codigo: ISIS3510
+
+  - dia_semana: lunes
+    hora_inicio: "11:00"
+    hora_fin: "12:20"
+    tipo: clase
+    nombre: matematica
+    codigo: MATE1102
+
+  - dia_semana: lunes
+    hora_inicio: "14:00"
+    hora_fin: "15:20"
+    tipo: clase
+    nombre: fisica2
+    codigo: FISI1528P
+
+  - dia_semana: lunes
+    hora_inicio: "15:30"
+    hora_fin: "16:50"
+    tipo: clase
+    nombre: algoritmos
+    codigo: ISIS2112
+
+  - dia_semana: martes
+    hora_inicio: "06:00"
+    hora_fin: "07:50"
+    tipo: entrenamiento
+    nombre: natacion
+
+  - dia_semana: martes
+    hora_inicio: "14:00"
+    hora_fin: "15:20"
+    tipo: clase
+    nombre: fisica2
+    codigo: FISI1528P
+
+  - dia_semana: martes
+    hora_inicio: "18:00"
+    hora_fin: "20:50"
+    tipo: clase
+    nombre: gobierno_procesos
+    codigo: MBIT4208
+
+  - dia_semana: miercoles
+    hora_inicio: "08:00"
+    hora_fin: "09:20"
+    tipo: clase
+    nombre: moviles
+    codigo: ISIS3510
+
+  - dia_semana: miercoles
+    hora_inicio: "09:30"
+    hora_fin: "10:50"
+    tipo: clase
+    nombre: web
+    codigo: ISIS3710
+
+  - dia_semana: miercoles
+    hora_inicio: "14:00"
+    hora_fin: "15:20"
+    tipo: clase
+    nombre: fisica2
+    codigo: FISI1528
+
+  - dia_semana: miercoles
+    hora_inicio: "15:30"
+    hora_fin: "16:50"
+    tipo: clase
+    nombre: algoritmos
+    codigo: ISIS2112
+
+  - dia_semana: jueves
+    hora_inicio: "06:00"
+    hora_fin: "07:50"
+    tipo: entrenamiento
+    nombre: natacion
+
+  - dia_semana: jueves
+    hora_inicio: "11:00"
+    hora_fin: "12:20"
+    tipo: clase
+    nombre: matematica
+    codigo: MATE1102
+
+  - dia_semana: viernes
+    hora_inicio: "08:00"
+    hora_fin: "09:20"
+    tipo: clase
+    nombre: moviles
+    codigo: ISIS3510
+
+  - dia_semana: viernes
+    hora_inicio: "09:30"
+    hora_fin: "10:50"
+    tipo: clase
+    nombre: web
+    codigo: ISIS3710
+
+  - dia_semana: viernes
+    hora_inicio: "11:00"
+    hora_fin: "12:20"
+    tipo: clase
+    nombre: matematica
+    codigo: MATE1102
+
+  - dia_semana: viernes
+    hora_inicio: "14:00"
+    hora_fin: "15:20"
+    tipo: clase
+    nombre: fisica2
+    codigo: FISI1528
+
+repos_notas:
+  - nombre: notas-algoritmos
+    ruta_local: "../notas-algoritmos"
+  - nombre: notas-moviles
+    ruta_local: "../notas-moviles"
+  - nombre: notas-web
+    ruta_local: "../notas-web"
+  - nombre: notas-fisica2
+    ruta_local: "../notas-fisica2"
+  - nombre: notas-matematica
+    ruta_local: "../notas-matematica"
+  - nombre: notas-gobierno-procesos
+    ruta_local: "../notas-gobierno-procesos"
+
+rutas_repos:
+  pendientes: "../pendientes"
+  entrenamiento: "../entrenamiento"

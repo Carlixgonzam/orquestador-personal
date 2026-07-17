@@ -1,0 +1,15 @@
+sesiones:
+  - fecha: "2026-08-03"
+    tipo: natacion
+    intensidad: moderada
+    notas: "Series de resistencia aerobica"
+
+  - fecha: "2026-08-04"
+    tipo: natacion
+    intensidad: alta
+    notas: "Series de velocidad"
+
+  - fecha: "2026-08-06"
+    tipo: natacion
+    intensidad: baja
+    notas: "Recuperacion activa"

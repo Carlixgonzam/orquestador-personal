@@ -1,0 +1,28 @@
+tareas:
+  - curso: algoritmos
+    titulo: "Taller 3 de grafos"
+    fecha_limite: "2026-08-10"
+    energia_requerida: alta
+    peso_academico: 15
+    estado: pendiente
+
+  - curso: web
+    titulo: "Entrega parcial de proyecto"
+    fecha_limite: "2026-08-06"
+    energia_requerida: media
+    peso_academico: 20
+    estado: pendiente
+
+  - curso: matematica
+    titulo: "Quiz de series"
+    fecha_limite: "2026-08-04"
+    energia_requerida: baja
+    peso_academico: 5
+    estado: en_progreso
+
+  - curso: moviles
+    titulo: "Laboratorio 2 entregado"
+    fecha_limite: "2026-07-28"
+    energia_requerida: media
+    peso_academico: 10
+    estado: completada

@@ -1,0 +1,60 @@
+name: Reporte diario
+
+on:
+  schedule:
+    - cron: "30 10 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  generar-reporte:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar orquestador-personal
+        uses: actions/checkout@v4
+        with:
+          path: orquestador-personal
+
+      - name: Clonar pendientes
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/pendientes
+          token: ${{ secrets.TOKEN_REPOS_PRIVADOS }}
+          path: pendientes
+
+      - name: Clonar entrenamiento
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/entrenamiento
+          token: ${{ secrets.TOKEN_REPOS_PRIVADOS }}
+          path: entrenamiento
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        working-directory: orquestador-personal
+        run: pip install .
+
+      - name: Generar reporte del dia
+        working-directory: orquestador-personal
+        env:
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+        run: python scripts/ejecutar_diario.py
+
+      - name: Subir hoy.md como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hoy-md
+          path: orquestador-personal/hoy.md
+
+      - name: Commitear hoy.md de vuelta al repo
+        working-directory: orquestador-personal
+        run: |
+          git config user.name "orquestador-personal-bot"
+          git config user.email "actions@github.com"
+          git add hoy.md
+          git diff --cached --quiet || git commit -m "Actualiza el reporte diario"
+          git push
