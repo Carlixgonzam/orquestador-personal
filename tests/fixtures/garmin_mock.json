@@ -10,20 +10,36 @@
     "hrvSummary": {
       "status": "BALANCED",
       "lastNightAvg": 55,
-      "weeklyAvg": 52
+      "weeklyAvg": 52,
+      "feedbackPhrase": "HRV_BALANCED_8"
     }
   },
   "training_status": {
-    "mostRecentTrainingStatus": {
-      "latestTrainingStatusData": {
-        "12345": {
-          "trainingStatus": "PRODUCTIVE"
-        }
+    "userId": 136084245,
+    "mostRecentVO2Max": {
+      "generic": {
+        "vo2MaxValue": 48.5
       }
     },
     "mostRecentTrainingLoadBalance": {
-      "acwrPercent": 118,
-      "acwrStatus": "OPTIMAL"
+      "metricsTrainingLoadBalanceDTOMap": {
+        "12345": {
+          "monthlyLoadAerobicLow": 340.8
+        }
+      }
+    },
+    "mostRecentTrainingStatus": {
+      "latestTrainingStatusData": {
+        "12345": {
+          "trainingStatus": 4,
+          "trainingStatusFeedbackPhrase": "PRODUCTIVE_2",
+          "acuteTrainingLoadDTO": {
+            "acwrPercent": 118,
+            "acwrStatus": "OPTIMAL",
+            "dailyAcuteChronicWorkloadRatio": 1.18
+          }
+        }
+      }
     }
   },
   "max_metrics": [
@@ -70,7 +86,11 @@
     {
       "charged": 60,
       "drained": 40,
-      "bodyBatteryValuesArray": []
+      "bodyBatteryValuesArray": [
+        [1754200000000, 75],
+        [1754200500000, 68],
+        [1754201000000, 45]
+      ]
     }
   ]
 }

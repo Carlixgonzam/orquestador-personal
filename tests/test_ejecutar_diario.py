@@ -1,12 +1,17 @@
 import json
 import os
-from datetime import date
+from datetime import date, time
 from unittest.mock import MagicMock
 
 import pytest
 import yaml
 
-from scripts.ejecutar_diario import construir_estado_fisiologico, construir_horario_hoy, ejecutar
+from scripts.ejecutar_diario import (
+    _extraer_nivel_body_battery,
+    construir_estado_fisiologico,
+    construir_horario_hoy,
+    ejecutar,
+)
 
 RUTA_GARMIN_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "garmin_mock.json")
 RUTA_CONFIG_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "config_mock.yaml")
@@ -58,7 +63,7 @@ def test_construir_estado_fisiologico_extrae_los_campos_esperados(cliente_garmin
     assert estado.training_status == "PRODUCTIVE"
     assert estado.hrv_status == "BALANCED"
     assert estado.hrv_valor_ms == 55
-    assert estado.body_battery == 60
+    assert estado.body_battery == 45
     assert estado.acwr == pytest.approx(1.18)
     assert estado.vo2_max == 48.5
     assert estado.endurance_score == 62
@@ -68,10 +73,68 @@ def test_construir_estado_fisiologico_extrae_los_campos_esperados(cliente_garmin
     assert estado.momento.date() == FECHA_PRUEBA
 
 
+def test_extraer_nivel_body_battery_toma_el_ultimo_valor_del_dia():
+    datos_body_battery = [{"charged": 60, "bodyBatteryValuesArray": [[1754200000000, 75], [1754201000000, 45]]}]
+    assert _extraer_nivel_body_battery(datos_body_battery) == 45
+
+
+def test_extraer_nivel_body_battery_usa_charged_si_no_hay_valores_del_dia():
+    datos_body_battery = [{"charged": 60, "bodyBatteryValuesArray": []}]
+    assert _extraer_nivel_body_battery(datos_body_battery) == 60
+
+
+def test_extraer_nivel_body_battery_retorna_cero_si_no_hay_datos():
+    assert _extraer_nivel_body_battery([]) == 0
+
+
 def test_construir_horario_hoy_usa_el_dia_de_la_semana_correcto():
     horario = construir_horario_hoy(RUTA_CONFIG_MOCK, FECHA_PRUEBA)
 
     assert horario.dia_semana == "miercoles"
+    assert horario.bloques_fijos == []
+    assert len(horario.huecos_libres) == 1
+
+
+def _construir_ruta_config_con_rango_de_semestre(tmp_path):
+    with open(RUTA_CONFIG_MOCK, encoding="utf-8") as archivo:
+        configuracion = yaml.safe_load(archivo)
+    configuracion["fecha_inicio_semestre"] = "2026-08-03"
+    configuracion["fecha_fin_semestre"] = "2026-11-28"
+    ruta_config_prueba = tmp_path / "config.yaml"
+    with open(ruta_config_prueba, "w", encoding="utf-8") as archivo:
+        yaml.safe_dump(configuracion, archivo)
+    return str(ruta_config_prueba)
+
+
+def test_construir_horario_hoy_antes_del_semestre_ignora_bloques_fijos(tmp_path):
+    ruta_config_prueba = _construir_ruta_config_con_rango_de_semestre(tmp_path)
+    fecha_antes_del_semestre = date(2026, 7, 13)
+
+    horario = construir_horario_hoy(ruta_config_prueba, fecha_antes_del_semestre)
+
+    assert horario.dia_semana == "lunes"
+    assert horario.bloques_fijos == []
+    assert len(horario.huecos_libres) == 1
+    assert horario.huecos_libres[0].hora_inicio == time(0, 0)
+    assert horario.huecos_libres[0].hora_fin == time(23, 59)
+
+
+def test_construir_horario_hoy_dentro_del_semestre_respeta_bloques_fijos(tmp_path):
+    ruta_config_prueba = _construir_ruta_config_con_rango_de_semestre(tmp_path)
+    fecha_dentro_del_semestre = date(2026, 8, 3)
+
+    horario = construir_horario_hoy(ruta_config_prueba, fecha_dentro_del_semestre)
+
+    assert horario.dia_semana == "lunes"
+    assert len(horario.bloques_fijos) == 2
+
+
+def test_construir_horario_hoy_despues_del_semestre_ignora_bloques_fijos(tmp_path):
+    ruta_config_prueba = _construir_ruta_config_con_rango_de_semestre(tmp_path)
+    fecha_despues_del_semestre = date(2026, 12, 7)
+
+    horario = construir_horario_hoy(ruta_config_prueba, fecha_despues_del_semestre)
+
     assert horario.bloques_fijos == []
     assert len(horario.huecos_libres) == 1
 

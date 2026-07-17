@@ -5,9 +5,10 @@ import yaml
 
 from fuentes.entrenamiento_cliente import cargar_plan_semana_actual, obtener_sesion_de_hoy
 from fuentes.garmin_cliente import ClienteGarmin
-from fuentes.horario_cliente import calcular_huecos_libres, cargar_bloques_fijos, nombre_dia_semana
+from fuentes.horario_cliente import FIN_DIA, INICIO_DIA, calcular_huecos_libres, cargar_bloques_fijos, nombre_dia_semana
 from fuentes.pendientes_cliente import cargar_tareas_pendientes
 from modelo.estado_fisiologico import EstadoFisiologico
+from modelo.hueco_libre import HuecoLibre
 from motor.priorizador import HorarioHoy, decidir_hoy
 from salida.generador_reporte import generar_reporte
 
@@ -25,20 +26,31 @@ def _primer_elemento(lista, valor_por_defecto=None):
     return lista[0] if lista else valor_por_defecto
 
 
-def _extraer_clasificacion_entrenamiento(datos_estado_entrenamiento: dict) -> str:
-    valores_por_fecha = datos_estado_entrenamiento.get("mostRecentTrainingStatus", {}).get(
+def _datos_del_dispositivo_principal(datos_estado_entrenamiento: dict) -> dict:
+    valores_por_dispositivo = datos_estado_entrenamiento.get("mostRecentTrainingStatus", {}).get(
         "latestTrainingStatusData", {}
     )
-    if not valores_por_fecha:
+    if not valores_por_dispositivo:
+        return {}
+    return next(iter(valores_por_dispositivo.values()))
+
+
+def _extraer_clasificacion_entrenamiento(datos_estado_entrenamiento: dict) -> str:
+    frase_retroalimentacion = _datos_del_dispositivo_principal(datos_estado_entrenamiento).get(
+        "trainingStatusFeedbackPhrase"
+    )
+    if not frase_retroalimentacion:
         return "desconocido"
-    primer_valor = next(iter(valores_por_fecha.values()))
-    return primer_valor.get("trainingStatus", "desconocido")
+    return frase_retroalimentacion.rsplit("_", 1)[0]
 
 
 def _extraer_acwr(datos_estado_entrenamiento: dict) -> float | None:
-    balance_de_carga = datos_estado_entrenamiento.get("mostRecentTrainingLoadBalance", {})
-    porcentaje = balance_de_carga.get("acwrPercent")
-    return porcentaje / 100 if porcentaje is not None else None
+    datos_dispositivo = _datos_del_dispositivo_principal(datos_estado_entrenamiento)
+    return datos_dispositivo.get("acuteTrainingLoadDTO", {}).get("dailyAcuteChronicWorkloadRatio")
+
+
+def _extraer_vo2_max(datos_estado_entrenamiento: dict) -> float | None:
+    return datos_estado_entrenamiento.get("mostRecentVO2Max", {}).get("generic", {}).get("vo2MaxValue")
 
 
 def _extraer_frecuencia_cardiaca_reposo(datos_rhr: dict) -> int | None:
@@ -48,14 +60,17 @@ def _extraer_frecuencia_cardiaca_reposo(datos_rhr: dict) -> int | None:
 
 
 def _extraer_nivel_body_battery(datos_body_battery: list) -> int:
-    return _primer_elemento(datos_body_battery, {}).get("charged", 0)
+    primer_dia = _primer_elemento(datos_body_battery, {})
+    valores_del_dia = primer_dia.get("bodyBatteryValuesArray", [])
+    if not valores_del_dia:
+        return primer_dia.get("charged", 0)
+    return valores_del_dia[-1][1]
 
 
 def construir_estado_fisiologico(cliente_garmin: ClienteGarmin, fecha: date) -> EstadoFisiologico:
     disposicion = _primer_elemento(cliente_garmin.obtener_disposicion_entrenamiento(fecha), {})
     resumen_hrv = (cliente_garmin.obtener_hrv(fecha) or {}).get("hrvSummary", {})
     datos_estado_entrenamiento = cliente_garmin.obtener_estado_entrenamiento(fecha)
-    metricas_maximas = _primer_elemento(cliente_garmin.obtener_metricas_maximas(fecha), {})
     datos_score_resistencia = cliente_garmin.obtener_score_resistencia(fecha) or {}
     datos_predicciones = cliente_garmin.obtener_predicciones_carrera() or {}
     datos_frecuencia_respiratoria = cliente_garmin.obtener_frecuencia_respiratoria(fecha) or {}
@@ -69,10 +84,10 @@ def construir_estado_fisiologico(cliente_garmin: ClienteGarmin, fecha: date) -> 
         training_status=_extraer_clasificacion_entrenamiento(datos_estado_entrenamiento),
         hrv_status=resumen_hrv.get("status", "desconocido"),
         hrv_valor_ms=resumen_hrv.get("lastNightAvg"),
-        hrv_tendencia=resumen_hrv.get("status"),
+        hrv_tendencia=resumen_hrv.get("feedbackPhrase"),
         body_battery=_extraer_nivel_body_battery(datos_nivel_body_battery),
         eventos_body_battery=eventos_body_battery,
-        vo2_max=metricas_maximas.get("generic", {}).get("vo2MaxValue"),
+        vo2_max=_extraer_vo2_max(datos_estado_entrenamiento),
         endurance_score=datos_score_resistencia.get("overallScore"),
         predicciones_carrera=datos_predicciones,
         frecuencia_cardiaca_reposo=_extraer_frecuencia_cardiaca_reposo(
@@ -84,9 +99,24 @@ def construir_estado_fisiologico(cliente_garmin: ClienteGarmin, fecha: date) -> 
     )
 
 
+def _fecha_dentro_del_semestre(configuracion: dict, fecha: date) -> bool:
+    fecha_inicio_texto = configuracion.get("fecha_inicio_semestre")
+    fecha_fin_texto = configuracion.get("fecha_fin_semestre")
+    if not fecha_inicio_texto or not fecha_fin_texto:
+        return True
+    fecha_inicio = date.fromisoformat(str(fecha_inicio_texto))
+    fecha_fin = date.fromisoformat(str(fecha_fin_texto))
+    return fecha_inicio <= fecha <= fecha_fin
+
+
 def construir_horario_hoy(ruta_config: str, fecha: date) -> HorarioHoy:
-    bloques_fijos = cargar_bloques_fijos(ruta_config)
+    configuracion = _cargar_configuracion(ruta_config)
     dia_semana = nombre_dia_semana(fecha)
+
+    if not _fecha_dentro_del_semestre(configuracion, fecha):
+        return HorarioHoy(dia_semana, [], [HuecoLibre(dia_semana, INICIO_DIA, FIN_DIA)])
+
+    bloques_fijos = cargar_bloques_fijos(ruta_config)
     bloques_fijos_de_hoy = [bloque for bloque in bloques_fijos if bloque.dia_semana == dia_semana]
     huecos_libres = calcular_huecos_libres(dia_semana, bloques_fijos)
     return HorarioHoy(dia_semana, bloques_fijos_de_hoy, huecos_libres)

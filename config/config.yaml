@@ -1,5 +1,8 @@
 zona_horaria: "America/Bogota"
 
+fecha_inicio_semestre: "2026-08-03"
+fecha_fin_semestre: "2026-11-28"
+
 umbrales:
   acwr_limite: 1.5
   body_battery_bajo: 40

@@ -13,17 +13,18 @@ El sistema completo vive en cuatro tipos de repos separados. Este repo (`orquest
 - **entrenamiento**: repo separado con archivos `plan-semana-XX.yaml` (uno por semana ISO) con las sesiones de entrenamiento planeadas.
 - **notas-*** (seis repos, uno por curso: dalgo, moviles, web, fisica2, matematica, gobierno-procesos): repos de notas independientes, referenciados solo por ruta local en `config/config.yaml`. Nunca se clonan como submódulo ni se copian dentro de este repo.
 
-`orquestador-personal` nunca escribe en los repos de pendientes, entrenamiento o notas: solo los lee.
+`orquestador-personal` solo lee de los repos de entrenamiento y notas. Sí escribe en `pendientes/tareas.yaml`, pero únicamente a través de la interfaz web (agregar, completar o eliminar tareas) — nunca automáticamente durante `ejecutar_diario.py`.
 
 ## Estructura del código
 
 ```
 config/config.yaml           horario fijo, umbrales y rutas a los demás repos
 modelo/                       dataclasses del dominio (tarea, sesion_entrenamiento, estado_fisiologico, bloque_fijo, hueco_libre)
-fuentes/                      clientes que leen Garmin, pendientes, entrenamiento, notas y el horario fijo
+fuentes/                      clientes que leen (y en el caso de pendientes, tambien escriben) Garmin, pendientes, entrenamiento, notas y el horario fijo
 motor/                        jerarquia de reglas de decision y recomendador de entrenamiento
 salida/                       generador del reporte hoy.md a partir de una plantilla Jinja
 scripts/ejecutar_diario.py    entry point que orquesta todo el flujo
+interfaz/app.py               interfaz web local (Flask) para ver hoy.md y gestionar tareas sin editar YAML a mano
 tests/                        tests con pytest y fixtures mock (sin tocar Garmin ni los repos reales)
 ```
 
@@ -73,6 +74,23 @@ python scripts/ejecutar_diario.py
 ```
 
 Esto genera `hoy.md` en la raíz del repo con el horario fijo del día, el resumen del estado fisiológico, las tareas recomendadas por hueco libre, la recomendación de entrenamiento y las alertas si aplica alguna regla de bloqueo.
+
+## Interfaz web
+
+Para no tener que editar `tareas.yaml` a mano, hay una interfaz web local minimalista:
+
+```bash
+python interfaz/app.py
+```
+
+Esto levanta un servidor en `http://127.0.0.1:5050` (correrlo desde la raíz del repo, con el entorno virtual activado). Desde ahí puedes:
+
+- Ver el último `hoy.md` generado.
+- Regenerar el reporte con un botón (vuelve a llamar a Garmin y a las reglas de decisión).
+- Agregar una tarea nueva con un formulario (curso, título, deadline, energía requerida, créditos).
+- Marcar una tarea como completada o eliminarla.
+
+Es un servidor de desarrollo Flask pensado para uso local y personal, no para exponerlo a internet.
 
 ## Cómo correr los tests
 
