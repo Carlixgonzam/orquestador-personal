@@ -73,7 +73,7 @@ def _extraer_nivel_body_battery(datos_body_battery: list) -> int:
 def construir_estado_fisiologico(cliente_garmin: ClienteGarmin, fecha: date) -> EstadoFisiologico:
     disposicion = _primer_elemento(cliente_garmin.obtener_disposicion_entrenamiento(fecha), {})
     resumen_hrv = (cliente_garmin.obtener_hrv(fecha) or {}).get("hrvSummary", {})
-    datos_estado_entrenamiento = cliente_garmin.obtener_estado_entrenamiento(fecha)
+    datos_estado_entrenamiento = cliente_garmin.obtener_estado_entrenamiento(fecha) or {}
     datos_score_resistencia = cliente_garmin.obtener_score_resistencia(fecha) or {}
     datos_predicciones = cliente_garmin.obtener_predicciones_carrera() or {}
     datos_frecuencia_respiratoria = cliente_garmin.obtener_frecuencia_respiratoria(fecha) or {}
@@ -94,7 +94,7 @@ def construir_estado_fisiologico(cliente_garmin: ClienteGarmin, fecha: date) -> 
         endurance_score=datos_score_resistencia.get("overallScore"),
         predicciones_carrera=datos_predicciones,
         frecuencia_cardiaca_reposo=_extraer_frecuencia_cardiaca_reposo(
-            cliente_garmin.obtener_frecuencia_cardiaca_reposo(fecha)
+            cliente_garmin.obtener_frecuencia_cardiaca_reposo(fecha) or {}
         ),
         frecuencia_respiratoria=datos_frecuencia_respiratoria.get("avgWakingRespirationValue"),
         estres_promedio=datos_estres.get("avgStressLevel"),

@@ -73,6 +73,24 @@ def test_construir_estado_fisiologico_extrae_los_campos_esperados(cliente_garmin
     assert estado.momento.date() == FECHA_PRUEBA
 
 
+def test_construir_estado_fisiologico_no_falla_si_estado_entrenamiento_es_none(cliente_garmin_falso):
+    cliente_garmin_falso.obtener_estado_entrenamiento.return_value = None
+
+    estado = construir_estado_fisiologico(cliente_garmin_falso, FECHA_PRUEBA)
+
+    assert estado.training_status == "desconocido"
+    assert estado.acwr is None
+    assert estado.vo2_max is None
+
+
+def test_construir_estado_fisiologico_no_falla_si_frecuencia_cardiaca_reposo_es_none(cliente_garmin_falso):
+    cliente_garmin_falso.obtener_frecuencia_cardiaca_reposo.return_value = None
+
+    estado = construir_estado_fisiologico(cliente_garmin_falso, FECHA_PRUEBA)
+
+    assert estado.frecuencia_cardiaca_reposo is None
+
+
 def test_extraer_nivel_body_battery_toma_el_ultimo_valor_del_dia():
     datos_body_battery = [{"charged": 60, "bodyBatteryValuesArray": [[1754200000000, 75], [1754201000000, 45]]}]
     assert _extraer_nivel_body_battery(datos_body_battery) == 45
