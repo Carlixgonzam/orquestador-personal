@@ -1,17 +1,65 @@
 import os
 import shutil
-from datetime import date
+from datetime import date, time
 
 import pytest
 
 import interfaz.app as modulo_interfaz
 from fuentes.entrenamiento_cliente import cargar_plan_semana_actual, nombre_archivo_plan_semana_actual
-from fuentes.pendientes_cliente import cargar_todas_las_tareas
+from fuentes.pendientes_cliente import cargar_todas_las_tareas, guardar_todas_las_tareas
+from interfaz.vista_semanal import calcular_lunes_de_la_semana
+from modelo.bloque_fijo import BloqueFijo
 
 RUTA_REPO_PENDIENTES_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "pendientes_mock")
 RUTA_REPO_NOTAS_ALGORITMOS_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "notas_mock", "notas-algoritmos")
 RUTA_HISTORIAL_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "historial_mock.csv")
 NOMBRES_CURSOS_PRUEBA = {"algoritmos": "Diseño de Algoritmos", "web": "Programación Web"}
+
+SNAPSHOT_PRUEBA = {
+    "fecha": "2026-08-05",
+    "dia_semana": "miercoles",
+    "nombres_cursos": NOMBRES_CURSOS_PRUEBA,
+    "bloques_fijos_hoy": [],
+    "resultado": {
+        "bloque_fijo_activo": None,
+        "asignaciones": [
+            {
+                "hueco": {"dia_semana": "miercoles", "hora_inicio": "09:20:00", "hora_fin": "14:00:00"},
+                "tarea": {
+                    "curso": "algoritmos",
+                    "titulo": "Tarea del snapshot de prueba",
+                    "fecha_limite": "2026-08-10",
+                    "energia_requerida": "alta",
+                    "peso_academico": 3.0,
+                    "estado": "pendiente",
+                },
+            }
+        ],
+        "recomendacion_entrenamiento": {
+            "sesion_planeada": None,
+            "tipo_ajuste": "sin_sesion_planeada",
+            "justificacion": "No hay sesion de entrenamiento planeada para hoy",
+        },
+        "alertas": [],
+    },
+    "estado_fisiologico": {
+        "momento": "2026-08-05T10:00:00",
+        "training_readiness": 70,
+        "training_status": "productive",
+        "hrv_status": "balanced",
+        "hrv_valor_ms": 55.0,
+        "hrv_tendencia": "estable",
+        "body_battery": 60,
+        "eventos_body_battery": [],
+        "vo2_max": None,
+        "endurance_score": None,
+        "predicciones_carrera": {},
+        "frecuencia_cardiaca_reposo": 48,
+        "frecuencia_respiratoria": 14.5,
+        "estres_promedio": 30,
+        "acwr": 1.1,
+    },
+}
 
 
 def _construir_repo_entrenamiento_de_prueba(tmp_path):
@@ -36,7 +84,12 @@ def cliente_de_prueba(tmp_path, monkeypatch):
     ruta_repo_entrenamiento_prueba = _construir_repo_entrenamiento_de_prueba(tmp_path)
     monkeypatch.setattr(modulo_interfaz, "_ruta_repo_pendientes", lambda: str(ruta_repo_prueba))
     monkeypatch.setattr(modulo_interfaz, "_ruta_repo_entrenamiento", lambda: ruta_repo_entrenamiento_prueba)
-    monkeypatch.setattr(modulo_interfaz, "_leer_contenido_hoy", lambda: "reporte de prueba")
+    monkeypatch.setattr(modulo_interfaz, "_cargar_snapshot_hoy", lambda: SNAPSHOT_PRUEBA)
+    monkeypatch.setattr(
+        modulo_interfaz,
+        "_bloques_fijos_por_dia_de_la_semana",
+        lambda lunes: {"miercoles": [BloqueFijo("miercoles", time(8, 0), time(9, 20), "clase", "algoritmos", "ISIS2112")]},
+    )
     monkeypatch.setattr(modulo_interfaz, "_nombres_cursos", lambda: NOMBRES_CURSOS_PRUEBA)
     monkeypatch.setattr(modulo_interfaz, "RUTA_HISTORIAL_POR_DEFECTO", RUTA_HISTORIAL_MOCK)
     monkeypatch.setattr(
@@ -55,7 +108,46 @@ def test_index_muestra_las_tareas_existentes(cliente_de_prueba):
     assert respuesta.status_code == 200
     cuerpo = respuesta.get_data(as_text=True)
     assert "Taller 3 de grafos" in cuerpo
-    assert "reporte de prueba" in cuerpo
+    assert "Tarea del snapshot de prueba" in cuerpo
+
+
+def test_index_muestra_el_dashboard_con_stats_del_snapshot(cliente_de_prueba):
+    cliente, _, _ = cliente_de_prueba
+    cuerpo = cliente.get("/").get_data(as_text=True)
+
+    assert "cuadricula-stats" in cuerpo
+    assert "60" in cuerpo
+    assert "Body battery" in cuerpo
+    assert "<pre>" not in cuerpo
+
+
+def test_index_sin_snapshot_muestra_mensaje_de_bienvenida(cliente_de_prueba, monkeypatch):
+    cliente, _, _ = cliente_de_prueba
+    monkeypatch.setattr(modulo_interfaz, "_cargar_snapshot_hoy", lambda: None)
+
+    cuerpo = cliente.get("/").get_data(as_text=True)
+
+    assert "Aun no se ha generado ningun reporte" in cuerpo
+
+
+def test_index_con_bloque_fijo_activo_muestra_el_banner_y_omite_las_tarjetas(cliente_de_prueba, monkeypatch):
+    cliente, _, _ = cliente_de_prueba
+    snapshot_con_bloque_activo = dict(SNAPSHOT_PRUEBA)
+    snapshot_con_bloque_activo["resultado"] = dict(SNAPSHOT_PRUEBA["resultado"])
+    snapshot_con_bloque_activo["resultado"]["bloque_fijo_activo"] = {
+        "dia_semana": "miercoles",
+        "hora_inicio": "08:00:00",
+        "hora_fin": "09:20:00",
+        "tipo": "clase",
+        "nombre": "algoritmos",
+        "codigo": "ISIS2112",
+    }
+    monkeypatch.setattr(modulo_interfaz, "_cargar_snapshot_hoy", lambda: snapshot_con_bloque_activo)
+
+    cuerpo = cliente.get("/").get_data(as_text=True)
+
+    assert "banner-bloque-activo" in cuerpo
+    assert "cuadricula-stats" not in cuerpo
 
 
 def test_index_muestra_hallazgos_de_notas_para_el_curso_de_la_tarea(cliente_de_prueba):
@@ -230,3 +322,39 @@ def test_eliminar_sesion_la_remueve_del_plan(cliente_de_prueba):
     assert respuesta.status_code == 302
     sesiones = cargar_plan_semana_actual(ruta_repo_entrenamiento)
     assert len(sesiones) == cantidad_antes - 1
+
+
+def test_semana_muestra_los_siete_dias(cliente_de_prueba):
+    cliente, _, _ = cliente_de_prueba
+    cuerpo = cliente.get("/semana").get_data(as_text=True)
+
+    assert cuerpo.count("dia-columna-header") == 7
+    assert "Lunes" in cuerpo
+    assert "Domingo" in cuerpo
+
+
+def test_semana_muestra_el_bloque_fijo_del_dia_correcto(cliente_de_prueba):
+    cliente, _, _ = cliente_de_prueba
+    cuerpo = cliente.get("/semana").get_data(as_text=True)
+
+    assert "Diseño de Algoritmos" in cuerpo
+
+
+def test_semana_muestra_la_sesion_de_entrenamiento_de_hoy(cliente_de_prueba):
+    cliente, _, _ = cliente_de_prueba
+    cuerpo = cliente.get("/semana").get_data(as_text=True)
+
+    assert "Natacion" in cuerpo
+
+
+def test_semana_muestra_la_tarea_en_el_dia_de_su_deadline(cliente_de_prueba):
+    cliente, ruta_repo_pendientes, _ = cliente_de_prueba
+    lunes = calcular_lunes_de_la_semana(date.today())
+    tareas = cargar_todas_las_tareas(ruta_repo_pendientes)
+    primera_tarea = tareas[0]
+    primera_tarea.fecha_limite = lunes
+    guardar_todas_las_tareas(ruta_repo_pendientes, tareas)
+
+    cuerpo = cliente.get("/semana").get_data(as_text=True)
+
+    assert primera_tarea.titulo in cuerpo

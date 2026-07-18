@@ -13,11 +13,13 @@ from modelo.estado_fisiologico import EstadoFisiologico
 from modelo.hueco_libre import HuecoLibre
 from motor.priorizador import HorarioHoy, decidir_hoy, decidir_hoy_sin_garmin
 from salida.generador_reporte import generar_reporte
+from salida.snapshot_diario import guardar_snapshot_diario
 
 RAIZ_DEL_PROYECTO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUTA_CONFIG_POR_DEFECTO = os.path.join(RAIZ_DEL_PROYECTO, "config", "config.yaml")
 RUTA_SALIDA_POR_DEFECTO = os.path.join(RAIZ_DEL_PROYECTO, "hoy.md")
 RUTA_HISTORIAL_POR_DEFECTO = os.path.join(RAIZ_DEL_PROYECTO, "historial", "historial_fisiologico.csv")
+RUTA_SNAPSHOT_POR_DEFECTO = os.path.join(RAIZ_DEL_PROYECTO, "hoy_datos.json")
 
 
 def _cargar_configuracion(ruta_config: str) -> dict:
@@ -130,6 +132,7 @@ def ejecutar(
     ruta_config: str = RUTA_CONFIG_POR_DEFECTO,
     ruta_salida: str = RUTA_SALIDA_POR_DEFECTO,
     ruta_historial: str = RUTA_HISTORIAL_POR_DEFECTO,
+    ruta_snapshot: str = RUTA_SNAPSHOT_POR_DEFECTO,
     cliente_garmin: ClienteGarmin | None = None,
 ) -> str:
     fecha_referencia = fecha or date.today()
@@ -164,6 +167,8 @@ def ejecutar(
         resultado = decidir_hoy_sin_garmin(tareas_pendientes, horario_hoy, momento_actual, sesion_planeada_hoy)
         if resultado.bloque_fijo_activo is None:
             resultado.alertas.append(f"Detalle del error: {error}")
+
+    guardar_snapshot_diario(ruta_snapshot, resultado, estado_fisiologico, horario_hoy, nombres_cursos, fecha_referencia)
 
     return generar_reporte(
         resultado,

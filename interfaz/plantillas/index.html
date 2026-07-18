@@ -7,26 +7,121 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
 </head>
 <body>
+<header class="mastodon">
+  <div class="mastodon-interior">
+    <h1>Orquestador <span>Personal</span></h1>
+    <nav>
+      <a href="/">Hoy y tareas</a>
+      <a href="/rendimiento">Rendimiento</a>
+      <a href="/entrenamiento">Entrenamiento</a>
+      <a href="/semana">Semana</a>
+    </nav>
+    <div class="mastodon-regla"></div>
+  </div>
+</header>
 <main>
-  <h1>Orquestador personal</h1>
-  <nav>
-    <a href="/">Hoy y tareas</a>
-    <a href="/rendimiento">Rendimiento</a>
-    <a href="/entrenamiento">Entrenamiento</a>
-  </nav>
-
   <section>
     <div class="cabecera-reporte">
-      <h2>Reporte de hoy</h2>
+      <h2>{{ snapshot.dia_semana | capitalize if snapshot else "Hoy" }}{% if snapshot %} — {{ snapshot.fecha }}{% endif %}</h2>
       <form method="post" action="/regenerar">
         <button type="submit">Regenerar con Garmin</button>
       </form>
     </div>
-    <pre>{{ contenido_hoy }}</pre>
+
+    {% if not snapshot %}
+    <p class="grafica-vacia">Aun no se ha generado ningun reporte. Presiona "Regenerar con Garmin" para crear el primero.</p>
+    {% elif snapshot.resultado.bloque_fijo_activo %}
+    <div class="banner-bloque-activo">
+      Estas en <strong>{{ snapshot.nombres_cursos.get(snapshot.resultado.bloque_fijo_activo.nombre, snapshot.resultado.bloque_fijo_activo.nombre) }}</strong>
+      ({{ snapshot.resultado.bloque_fijo_activo.hora_inicio[:5] }}-{{ snapshot.resultado.bloque_fijo_activo.hora_fin[:5] }}). Sin recomendaciones mientras dure este bloque.
+    </div>
+    {% else %}
+
+    {% if snapshot.resultado.alertas %}
+    <div class="banner-alertas">
+      {% for alerta in snapshot.resultado.alertas %}
+      <div>{{ alerta }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if snapshot.estado_fisiologico %}
+    <div class="cuadricula-stats">
+      <div class="stat-card">
+        <span class="stat-valor">{{ snapshot.estado_fisiologico.training_readiness }}</span>
+        <span class="stat-etiqueta">Disposicion</span>
+      </div>
+      <div class="stat-card stat-primaria">
+        <span class="stat-valor">{{ snapshot.estado_fisiologico.body_battery }}</span>
+        <span class="stat-etiqueta">Body battery</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-valor">{{ snapshot.estado_fisiologico.hrv_valor_ms | default("-", true) }}</span>
+        <span class="stat-etiqueta">HRV (ms)</span>
+      </div>
+      {% if snapshot.estado_fisiologico.acwr is not none %}
+      <div class="stat-card">
+        <span class="stat-valor">{{ snapshot.estado_fisiologico.acwr }}</span>
+        <span class="stat-etiqueta">ACWR</span>
+      </div>
+      {% endif %}
+      {% if snapshot.estado_fisiologico.frecuencia_cardiaca_reposo is not none %}
+      <div class="stat-card">
+        <span class="stat-valor">{{ snapshot.estado_fisiologico.frecuencia_cardiaca_reposo | int }}</span>
+        <span class="stat-etiqueta">FC reposo</span>
+      </div>
+      {% endif %}
+      {% if snapshot.estado_fisiologico.estres_promedio is not none %}
+      <div class="stat-card">
+        <span class="stat-valor">{{ snapshot.estado_fisiologico.estres_promedio }}</span>
+        <span class="stat-etiqueta">Estres</span>
+      </div>
+      {% endif %}
+    </div>
+    <p class="subtexto-estado">Estado de entrenamiento: <strong>{{ snapshot.estado_fisiologico.training_status }}</strong> · HRV: <strong>{{ snapshot.estado_fisiologico.hrv_status }}</strong></p>
+    {% else %}
+    <p class="grafica-vacia">Sin datos de Garmin disponibles hoy.</p>
+    {% endif %}
+
+    <h3>Tareas recomendadas por hueco libre</h3>
+    {% if snapshot.resultado.asignaciones %}
+    <ul class="lista-asignaciones">
+      {% for asignacion in snapshot.resultado.asignaciones %}
+      <li>
+        <span class="hora-hueco">{{ asignacion.hueco.hora_inicio[:5] }}-{{ asignacion.hueco.hora_fin[:5] }}</span>
+        {% if asignacion.tarea %}
+        <span class="etiqueta etiqueta-{{ asignacion.tarea.energia_requerida }}">{{ asignacion.tarea.energia_requerida }}</span>
+        {{ snapshot.nombres_cursos.get(asignacion.tarea.curso, asignacion.tarea.curso) }} — {{ asignacion.tarea.titulo }}
+        <span class="subtexto-estado">(deadline {{ asignacion.tarea.fecha_limite }})</span>
+        {% else %}
+        <span class="grafica-vacia">sin tarea pendiente que asignar</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="grafica-vacia">No hay huecos libres hoy.</p>
+    {% endif %}
+
+    <h3>Entrenamiento de hoy</h3>
+    {% if snapshot.resultado.recomendacion_entrenamiento %}
+    {% set r = snapshot.resultado.recomendacion_entrenamiento %}
+    {% if r.sesion_planeada %}
+    <p>{{ r.sesion_planeada.tipo | capitalize }} ({{ r.sesion_planeada.intensidad }}) — {{ r.sesion_planeada.notas }}<br>
+    <span class="subtexto-estado">Ajuste: <strong>{{ r.tipo_ajuste }}</strong> — {{ r.justificacion }}</span></p>
+    {% else %}
+    <p class="grafica-vacia">{{ r.justificacion }}</p>
+    {% endif %}
+    {% else %}
+    <p class="grafica-vacia">Sin informacion de entrenamiento disponible.</p>
+    {% endif %}
+
+    {% endif %}
   </section>
 
   <section>
     <h2>Tareas</h2>
+    <div class="tabla-scroll">
     <table>
       <thead>
         <tr>
@@ -76,6 +171,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   </section>
 
   <section>

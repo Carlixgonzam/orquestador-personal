@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestador personal — Semana</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+<header class="mastodon">
+  <div class="mastodon-interior">
+    <h1>Orquestador <span>Personal</span></h1>
+    <nav>
+      <a href="/">Hoy y tareas</a>
+      <a href="/rendimiento">Rendimiento</a>
+      <a href="/entrenamiento">Entrenamiento</a>
+      <a href="/semana">Semana</a>
+    </nav>
+    <div class="mastodon-regla"></div>
+  </div>
+</header>
+<main>
+  <section>
+    <h2>Semana del {{ dias[0].fecha.strftime('%d/%m') }} al {{ dias[6].fecha.strftime('%d/%m') }}</h2>
+    <div class="cuadricula-semana">
+      {% for dia in dias %}
+      <div class="dia-columna{% if dia.fecha == hoy %} dia-columna-hoy{% endif %}">
+        <div class="dia-columna-header">
+          <span class="dia-nombre">{{ dia.dia_semana | capitalize }}</span>
+          <span class="dia-fecha">{{ dia.fecha.strftime('%d/%m') }}</span>
+        </div>
+        {% for bloque in dia.bloques_fijos %}
+        <div class="dia-item dia-item-fijo">
+          <span class="hora-hueco">{{ bloque.hora_inicio.strftime('%H:%M') }}</span>{{ nombres_cursos.get(bloque.nombre, bloque.nombre) }}
+        </div>
+        {% endfor %}
+        {% if dia.sesion_entrenamiento %}
+        <div class="dia-item dia-item-entrenamiento">
+          {{ dia.sesion_entrenamiento.tipo | capitalize }} · {{ dia.sesion_entrenamiento.intensidad }}
+        </div>
+        {% endif %}
+        {% for tarea in dia.tareas_del_dia %}
+        <div class="dia-item dia-item-tarea">
+          <span class="etiqueta etiqueta-{{ tarea.energia_requerida }}">{{ tarea.energia_requerida }}</span>
+          {{ nombres_cursos.get(tarea.curso, tarea.curso) }} — {{ tarea.titulo }}
+        </div>
+        {% endfor %}
+        {% if not dia.bloques_fijos and not dia.sesion_entrenamiento and not dia.tareas_del_dia %}
+        <div class="dia-item dia-item-vacio">Sin nada agendado</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+</body>
+</html>

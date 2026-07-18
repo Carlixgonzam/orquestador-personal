@@ -7,14 +7,19 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
 </head>
 <body>
+<header class="mastodon">
+  <div class="mastodon-interior">
+    <h1>Orquestador <span>Personal</span></h1>
+    <nav>
+      <a href="/">Hoy y tareas</a>
+      <a href="/rendimiento">Rendimiento</a>
+      <a href="/entrenamiento">Entrenamiento</a>
+      <a href="/semana">Semana</a>
+    </nav>
+    <div class="mastodon-regla"></div>
+  </div>
+</header>
 <main>
-  <h1>Orquestador personal</h1>
-  <nav>
-    <a href="/">Hoy y tareas</a>
-    <a href="/rendimiento">Rendimiento</a>
-    <a href="/entrenamiento">Entrenamiento</a>
-  </nav>
-
   <section>
     <h2>Tendencias</h2>
     <div class="cuadricula-graficas">
@@ -30,6 +35,7 @@
   <section>
     <h2>Historial</h2>
     {% if filas %}
+    <div class="tabla-scroll">
     <table>
       <thead>
         <tr>
@@ -54,6 +60,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
     {% else %}
     <p class="grafica-vacia">Todavia no hay historial. Cada vez que corras el reporte diario (localmente o por el Action) se agrega una fila aqui.</p>
     {% endif %}

@@ -1,5 +1,4 @@
-import os
-from datetime import date
+from datetime import date, timedelta
 
 from flask import Flask, redirect, render_template, request, url_for
 
@@ -12,6 +11,7 @@ from fuentes.entrenamiento_cliente import (
     nombre_archivo_plan_semana_actual,
 )
 from fuentes.historial_cliente import cargar_historial
+from fuentes.horario_cliente import DIAS_SEMANA
 from fuentes.notas_cliente import hallazgos_por_curso
 from fuentes.pendientes_cliente import (
     actualizar_estado_tarea,
@@ -21,13 +21,16 @@ from fuentes.pendientes_cliente import (
     eliminar_tarea,
 )
 from interfaz.graficas import generar_graficas_de_historial
+from interfaz.vista_semanal import calcular_lunes_de_la_semana, construir_vista_semanal
 from modelo.sesion_entrenamiento import SesionEntrenamiento
 from modelo.tarea import Tarea
+from salida.snapshot_diario import cargar_snapshot_diario
 from scripts.ejecutar_diario import (
     RUTA_CONFIG_POR_DEFECTO,
     RUTA_HISTORIAL_POR_DEFECTO,
-    RUTA_SALIDA_POR_DEFECTO,
+    RUTA_SNAPSHOT_POR_DEFECTO,
     _cargar_configuracion,
+    construir_horario_hoy,
     ejecutar,
 )
 
@@ -58,11 +61,8 @@ def _nombres_cursos() -> dict[str, str]:
     return cargar_nombres_cursos(RUTA_CONFIG_POR_DEFECTO)
 
 
-def _leer_contenido_hoy() -> str:
-    if not os.path.exists(RUTA_SALIDA_POR_DEFECTO):
-        return "Aun no se ha generado ningun reporte. Presiona 'Regenerar con Garmin' para crear el primero."
-    with open(RUTA_SALIDA_POR_DEFECTO, encoding="utf-8") as archivo_hoy:
-        return archivo_hoy.read()
+def _cargar_snapshot_hoy() -> dict | None:
+    return cargar_snapshot_diario(RUTA_SNAPSHOT_POR_DEFECTO)
 
 
 def _tareas_ordenadas_por_deadline_con_indice():
@@ -70,15 +70,34 @@ def _tareas_ordenadas_por_deadline_con_indice():
     return sorted(tareas_indexadas, key=lambda par: par[1].fecha_limite)
 
 
+def _bloques_fijos_por_dia_de_la_semana(lunes: date) -> dict[str, list]:
+    bloques_por_dia = {}
+    for indice, nombre_dia in enumerate(DIAS_SEMANA):
+        fecha_dia = lunes + timedelta(days=indice)
+        horario_del_dia = construir_horario_hoy(RUTA_CONFIG_POR_DEFECTO, fecha_dia)
+        bloques_por_dia[nombre_dia] = horario_del_dia.bloques_fijos
+    return bloques_por_dia
+
+
 @app.route("/")
 def index():
     return render_template(
         "index.html",
         tareas=_tareas_ordenadas_por_deadline_con_indice(),
-        contenido_hoy=_leer_contenido_hoy(),
+        snapshot=_cargar_snapshot_hoy(),
         hallazgos_por_curso=hallazgos_por_curso(_repos_notas()),
         nombres_cursos=_nombres_cursos(),
     )
+
+
+@app.route("/semana")
+def semana():
+    lunes = calcular_lunes_de_la_semana(date.today())
+    bloques_fijos_por_dia = _bloques_fijos_por_dia_de_la_semana(lunes)
+    sesiones_semana = cargar_plan_semana_actual(_ruta_repo_entrenamiento())
+    tareas = cargar_todas_las_tareas(_ruta_repo_pendientes())
+    dias = construir_vista_semanal(lunes, bloques_fijos_por_dia, sesiones_semana, tareas)
+    return render_template("semana.html", dias=dias, nombres_cursos=_nombres_cursos(), hoy=date.today())
 
 
 @app.route("/rendimiento")

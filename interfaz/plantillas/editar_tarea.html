@@ -7,13 +7,19 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
 </head>
 <body>
+<header class="mastodon">
+  <div class="mastodon-interior">
+    <h1>Orquestador <span>Personal</span></h1>
+    <nav>
+      <a href="/">Hoy y tareas</a>
+      <a href="/rendimiento">Rendimiento</a>
+      <a href="/entrenamiento">Entrenamiento</a>
+      <a href="/semana">Semana</a>
+    </nav>
+    <div class="mastodon-regla"></div>
+  </div>
+</header>
 <main>
-  <h1>Orquestador personal</h1>
-  <nav>
-    <a href="/">Hoy y tareas</a>
-    <a href="/rendimiento">Rendimiento</a>
-  </nav>
-
   <section>
     <h2>Editar tarea</h2>
     <form class="formulario-tarea" method="post" action="/tareas/{{ indice }}/editar">

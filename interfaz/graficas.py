@@ -64,10 +64,10 @@ def generar_svg_linea(
 
 def generar_graficas_de_historial(filas: list[dict]) -> dict[str, str]:
     metricas = [
-        ("Disposicion para entrenar", "training_readiness", "#3d6a5c"),
-        ("Body battery", "body_battery", "#4a5a8c"),
-        ("HRV (ms)", "hrv_valor_ms", "#8c4a6e"),
-        ("ACWR", "acwr", "#b8862f"),
+        ("Disposicion para entrenar", "training_readiness", "#0f3d5c"),
+        ("Body battery", "body_battery", "#d97a06"),
+        ("HRV (ms)", "hrv_valor_ms", "#8a2a5e"),
+        ("ACWR", "acwr", "#c62839"),
     ]
     graficas = {}
     for etiqueta, campo, color in metricas:
