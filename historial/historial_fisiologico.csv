@@ -1,2 +1,3 @@
 fecha,training_readiness,training_status,hrv_status,hrv_valor_ms,body_battery,acwr,frecuencia_cardiaca_reposo,frecuencia_respiratoria,estres_promedio,vo2_max,endurance_score
 2026-07-17,92,RECOVERY,BALANCED,71,34,0.2,48.0,15.0,27,46.0,5778
+2026-07-18,100,DETRAINING,BALANCED,79,97,0.1,46.0,17.0,6,46.0,5777

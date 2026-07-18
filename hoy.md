@@ -1,4 +1,4 @@
-# Reporte del dia — Viernes 2026-07-17
+# Reporte del dia — Sabado 2026-07-18
 
 ## Horario fijo de hoy
 
@@ -7,16 +7,20 @@ Sin bloques fijos hoy.
 
 ## Estado fisiologico
 
-- Disposicion para entrenar: 92
-- Estado de entrenamiento: RECOVERY
-- HRV: BALANCED (71 ms, tendencia HRV_BALANCED_8)
-- Body battery: 34
-- ACWR: 0.2
-- Frecuencia cardiaca en reposo: 48.0
-- Frecuencia respiratoria: 15.0
-- Estres promedio: 27
+- Disposicion para entrenar: 100
+- Estado de entrenamiento: DETRAINING
+- HRV: BALANCED (79 ms, tendencia HRV_BALANCED_5)
+- Body battery: 97
+- ACWR: 0.1
+- Frecuencia cardiaca en reposo: 46.0
+- Frecuencia respiratoria: 17.0
+- Estres promedio: 6
 - VO2 max: 46.0
-- Score de resistencia: 5778
+- Score de resistencia: 5777
+
+## Alertas
+
+- Estado de entrenamiento en DETRAINING: solo se recomiendan tareas de carga baja, sin entrenamiento adicional fuera del plan fijo
 
 
 ## Tareas recomendadas por hueco libre
@@ -25,6 +29,4 @@ Sin bloques fijos hoy.
 
 ## Entrenamiento de hoy
 
-- Sesion planeada: ciclismo (baja) — EJEMPLO - reemplaza con tu sesion real: salida suave de recuperacion
-- Ajuste recomendado: mantener
-- El estado fisiologico permite mantener la sesion planeada sin cambios
+- No hay sesion de entrenamiento planeada para hoy
