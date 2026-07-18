@@ -1,8 +1,10 @@
 import os
 import shutil
 from datetime import date, time
+from unittest.mock import MagicMock
 
 import pytest
+import requests
 
 import interfaz.app as modulo_interfaz
 from fuentes.entrenamiento_cliente import cargar_plan_semana_actual, nombre_archivo_plan_semana_actual
@@ -358,3 +360,57 @@ def test_semana_muestra_la_tarea_en_el_dia_de_su_deadline(cliente_de_prueba):
     cuerpo = cliente.get("/semana").get_data(as_text=True)
 
     assert primera_tarea.titulo in cuerpo
+
+
+def test_generar_sesion_desde_dsl_agrega_la_sesion_generada(cliente_de_prueba, monkeypatch):
+    cliente, _, ruta_repo_entrenamiento = cliente_de_prueba
+    cantidad_antes = len(cargar_plan_semana_actual(ruta_repo_entrenamiento))
+    cliente_dsl_falso = MagicMock()
+    cliente_dsl_falso.generar_sesion.return_value = {
+        "success": True,
+        "code": "session Entreno1 {\n  warmup 400 freestyle\n}",
+        "goal": "endurance",
+        "distance": 2000,
+    }
+    monkeypatch.setattr(modulo_interfaz, "ClienteSwimmingDSL", lambda: cliente_dsl_falso)
+
+    respuesta = cliente.post(
+        "/entrenamiento/generar-dsl",
+        data={
+            "fecha": date.today().isoformat(),
+            "objetivo": "endurance",
+            "distancia": "2000",
+            "duracion": "60",
+            "estilos": ["freestyle"],
+        },
+    )
+
+    assert respuesta.status_code == 302
+    cliente_dsl_falso.generar_sesion.assert_called_once_with(
+        objetivo="endurance", distancia=2000, estilos=["freestyle"], duracion=60
+    )
+    sesiones = cargar_plan_semana_actual(ruta_repo_entrenamiento)
+    assert len(sesiones) == cantidad_antes + 1
+    assert "warmup 400 freestyle" in sesiones[-1].notas
+
+
+def test_generar_sesion_desde_dsl_sin_servidor_muestra_mensaje_flash(cliente_de_prueba, monkeypatch):
+    cliente, _, _ = cliente_de_prueba
+    cliente_dsl_falso = MagicMock()
+    cliente_dsl_falso.generar_sesion.side_effect = requests.exceptions.ConnectionError()
+    monkeypatch.setattr(modulo_interfaz, "ClienteSwimmingDSL", lambda: cliente_dsl_falso)
+
+    respuesta = cliente.post(
+        "/entrenamiento/generar-dsl",
+        data={
+            "fecha": date.today().isoformat(),
+            "objetivo": "endurance",
+            "distancia": "2000",
+            "duracion": "60",
+            "estilos": ["freestyle"],
+        },
+        follow_redirects=True,
+    )
+
+    assert respuesta.status_code == 200
+    assert "servidor de swimmingdsl" in respuesta.get_data(as_text=True)

@@ -20,6 +20,16 @@
   </div>
 </header>
 <main>
+  {% with mensajes = get_flashed_messages() %}
+  {% if mensajes %}
+  <div class="banner-alertas">
+    {% for mensaje in mensajes %}
+    <div>{{ mensaje }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
   <section>
     <h2>Plan de la semana actual ({{ nombre_archivo }})</h2>
     <div class="tabla-scroll">
@@ -79,6 +89,39 @@
         <input type="text" name="notas">
       </label>
       <button type="submit">Agregar sesion</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Generar sesion con swimmingdsl</h2>
+    <p class="subtexto-estado">Requiere que tengas corriendo <code>npm start</code> en <code>swimmingdsl/server</code> localmente.</p>
+    <form class="formulario-tarea" method="post" action="/entrenamiento/generar-dsl">
+      <label>Fecha
+        <input type="date" name="fecha" required>
+      </label>
+      <label>Objetivo
+        <select name="objetivo" required>
+          <option value="endurance">Resistencia</option>
+          <option value="speed">Velocidad</option>
+          <option value="technique">Tecnica</option>
+          <option value="recovery">Recuperacion</option>
+        </select>
+      </label>
+      <label>Distancia (m)
+        <input type="number" name="distancia" min="100" step="100" value="2000" required>
+      </label>
+      <label>Duracion (min)
+        <input type="number" name="duracion" min="15" step="5" value="60" required>
+      </label>
+      <label>Estilos
+        <select name="estilos" multiple required>
+          <option value="freestyle" selected>Libre</option>
+          <option value="backstroke">Espalda</option>
+          <option value="breaststroke">Pecho</option>
+          <option value="butterfly">Mariposa</option>
+        </select>
+      </label>
+      <button type="submit">Generar y agregar</button>
     </form>
   </section>
 </main>

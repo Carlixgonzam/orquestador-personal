@@ -1,6 +1,8 @@
+import os
 from datetime import date, timedelta
 
-from flask import Flask, redirect, render_template, request, url_for
+import requests
+from flask import Flask, flash, redirect, render_template, request, url_for
 
 from fuentes.cursos_cliente import cargar_nombres_cursos
 from fuentes.entrenamiento_cliente import (
@@ -20,6 +22,7 @@ from fuentes.pendientes_cliente import (
     cargar_todas_las_tareas,
     eliminar_tarea,
 )
+from fuentes.swimmingdsl_cliente import ClienteSwimmingDSL, construir_sesion_desde_resultado
 from interfaz.graficas import generar_graficas_de_historial
 from interfaz.vista_semanal import calcular_lunes_de_la_semana, construir_vista_semanal
 from modelo.sesion_entrenamiento import SesionEntrenamiento
@@ -35,6 +38,7 @@ from scripts.ejecutar_diario import (
 )
 
 app = Flask(__name__, template_folder="plantillas", static_folder="estaticos")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
 
 
 def _ruta_repo_pendientes() -> str:
@@ -185,6 +189,26 @@ def crear_sesion():
         notas=request.form["notas"],
     )
     agregar_sesion(_ruta_repo_entrenamiento(), sesion_nueva)
+    return redirect(url_for("entrenamiento"))
+
+
+@app.route("/entrenamiento/generar-dsl", methods=["POST"])
+def generar_sesion_desde_dsl():
+    duracion = int(request.form["duracion"])
+    try:
+        cliente = ClienteSwimmingDSL()
+        resultado = cliente.generar_sesion(
+            objetivo=request.form["objetivo"],
+            distancia=int(request.form["distancia"]),
+            estilos=request.form.getlist("estilos"),
+            duracion=duracion,
+        )
+        sesion_nueva = construir_sesion_desde_resultado(resultado, date.fromisoformat(request.form["fecha"]), duracion)
+        agregar_sesion(_ruta_repo_entrenamiento(), sesion_nueva)
+    except requests.exceptions.ConnectionError:
+        flash("No se pudo conectar con el servidor de swimmingdsl. ¿Esta corriendo 'npm start' en server/?")
+    except Exception as error:
+        flash(f"No se pudo generar la sesion con swimmingdsl: {error}")
     return redirect(url_for("entrenamiento"))
 
 
