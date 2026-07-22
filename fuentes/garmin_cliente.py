@@ -3,6 +3,7 @@ from datetime import date
 
 import garminconnect
 from dotenv import load_dotenv
+from garminconnect.workout import SwimmingWorkout
 
 RUTA_TOKEN_POR_DEFECTO = os.path.expanduser("~/.orquestador_personal/token_garmin")
 
@@ -57,3 +58,9 @@ class ClienteGarmin:
 
     def obtener_nivel_body_battery(self, fecha: date | None = None):
         return self.cliente_garmin.get_body_battery(_fecha_texto(fecha))
+
+    def subir_entrenamiento_natacion(self, workout: SwimmingWorkout) -> dict:
+        return self.cliente_garmin.upload_swimming_workout(workout)
+
+    def programar_entrenamiento(self, workout_id: int | str, fecha: date) -> dict:
+        return self.cliente_garmin.schedule_workout(workout_id, fecha.isoformat())

@@ -10,7 +10,7 @@ def test_cargar_nombres_cursos_lee_el_mapeo_del_config_real():
     nombres_cursos = cargar_nombres_cursos(RUTA_CONFIG_REAL)
 
     assert nombres_cursos["algoritmos"] == "Diseño de Algoritmos"
-    assert nombres_cursos["gobierno_procesos"] == "Gobierno de Procesos de Negocio"
+    assert nombres_cursos["concurrencia"] == "Concurrencia, Paralelismo y Distribución"
 
 
 def test_cargar_nombres_cursos_retorna_vacio_si_no_existe_la_clave():

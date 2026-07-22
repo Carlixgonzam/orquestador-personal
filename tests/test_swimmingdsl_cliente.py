@@ -4,7 +4,23 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from fuentes.swimmingdsl_cliente import ClienteSwimmingDSL, construir_sesion_desde_resultado
+from fuentes.swimmingdsl_cliente import ClienteSwimmingDSL, construir_sesion_desde_resultado, parsear_codigo_dsl
+
+CODIGO_CON_SECCIONES = """session generated_speed {
+  warmup {
+    swim 500 m easy pace 120
+  }
+  main {
+    30 x swim 50 m butterfly hard pace 60 rest 45 s
+  }
+  cooldown {
+    swim 500 m easy pace 130
+  }
+}"""
+
+CODIGO_SIN_SECCIONES = """session generated_recovery {
+  swim 3000 m easy pace 140
+}"""
 
 RESULTADO_PRUEBA = {
     "success": True,
@@ -69,3 +85,64 @@ def test_generar_sesion_propaga_error_de_conexion():
         cliente = ClienteSwimmingDSL()
         with pytest.raises(requests.exceptions.ConnectionError):
             cliente.generar_sesion("endurance", 2000, ["freestyle"], 60)
+
+
+def test_parsear_codigo_dsl_con_secciones_explicitas():
+    bloques = parsear_codigo_dsl(CODIGO_CON_SECCIONES)
+
+    assert len(bloques) == 3
+
+    calentamiento = bloques[0]
+    assert calentamiento.seccion == "warmup"
+    assert calentamiento.repeticiones == 1
+    assert calentamiento.distancia_m == 500
+    assert calentamiento.estilo is None
+    assert calentamiento.intensidad == "easy"
+    assert calentamiento.pace_segundos == 120
+    assert calentamiento.descanso_segundos is None
+
+    principal = bloques[1]
+    assert principal.seccion == "main"
+    assert principal.repeticiones == 30
+    assert principal.distancia_m == 50
+    assert principal.estilo == "butterfly"
+    assert principal.intensidad == "hard"
+    assert principal.pace_segundos == 60
+    assert principal.descanso_segundos == 45
+
+    enfriamiento = bloques[2]
+    assert enfriamiento.seccion == "cooldown"
+    assert enfriamiento.distancia_m == 500
+    assert enfriamiento.pace_segundos == 130
+
+
+def test_parsear_codigo_dsl_sin_secciones_usa_main_por_defecto():
+    bloques = parsear_codigo_dsl(CODIGO_SIN_SECCIONES)
+
+    assert len(bloques) == 1
+    assert bloques[0].seccion == "main"
+    assert bloques[0].repeticiones == 1
+    assert bloques[0].distancia_m == 3000
+    assert bloques[0].intensidad == "easy"
+    assert bloques[0].pace_segundos == 140
+    assert bloques[0].descanso_segundos is None
+
+
+def test_parsear_codigo_dsl_bloque_sin_repeticion_ni_descanso():
+    bloques = parsear_codigo_dsl("session prueba {\n  swim 200 m freestyle moderate pace 100\n}")
+
+    assert len(bloques) == 1
+    bloque = bloques[0]
+    assert bloque.repeticiones == 1
+    assert bloque.descanso_segundos is None
+    assert bloque.estilo == "freestyle"
+    assert bloque.intensidad == "moderate"
+
+
+def test_parsear_codigo_dsl_ignora_lineas_vacias():
+    codigo = "session prueba {\n\n  swim 100 m pace 90\n\n}"
+    bloques = parsear_codigo_dsl(codigo)
+    assert len(bloques) == 1
+    assert bloques[0].distancia_m == 100
+    assert bloques[0].estilo is None
+    assert bloques[0].intensidad is None

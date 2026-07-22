@@ -12,6 +12,8 @@ from fuentes.entrenamiento_cliente import (
     eliminar_sesion,
     nombre_archivo_plan_semana_actual,
 )
+from fuentes.garmin_cliente import ClienteGarmin
+from fuentes.garmin_workout_builder import construir_workout_natacion
 from fuentes.historial_cliente import cargar_historial
 from fuentes.horario_cliente import DIAS_SEMANA
 from fuentes.notas_cliente import hallazgos_por_curso
@@ -22,7 +24,7 @@ from fuentes.pendientes_cliente import (
     cargar_todas_las_tareas,
     eliminar_tarea,
 )
-from fuentes.swimmingdsl_cliente import ClienteSwimmingDSL, construir_sesion_desde_resultado
+from fuentes.swimmingdsl_cliente import ClienteSwimmingDSL, construir_sesion_desde_resultado, parsear_codigo_dsl
 from interfaz.graficas import generar_graficas_de_historial
 from interfaz.vista_semanal import calcular_lunes_de_la_semana, construir_vista_semanal
 from modelo.sesion_entrenamiento import SesionEntrenamiento
@@ -63,6 +65,13 @@ def _repos_notas() -> list[dict]:
 
 def _nombres_cursos() -> dict[str, str]:
     return cargar_nombres_cursos(RUTA_CONFIG_POR_DEFECTO)
+
+
+def _extraer_codigo_dsl(notas: str) -> str | None:
+    marcador = "swimmingdsl ("
+    if marcador not in notas or "\n" not in notas:
+        return None
+    return notas.split("\n", 1)[1]
 
 
 def _cargar_snapshot_hoy() -> dict | None:
@@ -209,6 +218,26 @@ def generar_sesion_desde_dsl():
         flash("No se pudo conectar con el servidor de swimmingdsl. ¿Esta corriendo 'npm start' en server/?")
     except Exception as error:
         flash(f"No se pudo generar la sesion con swimmingdsl: {error}")
+    return redirect(url_for("entrenamiento"))
+
+
+@app.route("/entrenamiento/<int:indice>/enviar-a-garmin", methods=["POST"])
+def enviar_sesion_a_garmin(indice: int):
+    sesiones = cargar_plan_semana_actual(_ruta_repo_entrenamiento())
+    sesion = sesiones[indice]
+    codigo_dsl = _extraer_codigo_dsl(sesion.notas)
+    if codigo_dsl is None:
+        flash("Esta sesion no tiene codigo de swimmingdsl para enviar a Garmin.")
+        return redirect(url_for("entrenamiento"))
+    try:
+        bloques = parsear_codigo_dsl(codigo_dsl)
+        workout = construir_workout_natacion(f"Entrenamiento {sesion.fecha.isoformat()}", bloques)
+        cliente_garmin = ClienteGarmin()
+        respuesta_subida = cliente_garmin.subir_entrenamiento_natacion(workout)
+        cliente_garmin.programar_entrenamiento(respuesta_subida["workoutId"], sesion.fecha)
+        flash("Entrenamiento enviado y programado en Garmin correctamente.")
+    except Exception as error:
+        flash(f"No se pudo enviar el entrenamiento a Garmin: {error}")
     return redirect(url_for("entrenamiento"))
 
 

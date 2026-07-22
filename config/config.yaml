@@ -30,8 +30,8 @@ bloques_fijos:
     codigo: MATE1102
 
   - dia_semana: lunes
-    hora_inicio: "14:00"
-    hora_fin: "15:20"
+    hora_inicio: "12:30"
+    hora_fin: "13:50"
     tipo: clase
     nombre: fisica2
     codigo: FISI1528P
@@ -50,18 +50,18 @@ bloques_fijos:
     nombre: natacion
 
   - dia_semana: martes
-    hora_inicio: "14:00"
-    hora_fin: "15:20"
+    hora_inicio: "12:30"
+    hora_fin: "13:50"
     tipo: clase
     nombre: fisica2
     codigo: FISI1528P
 
   - dia_semana: martes
-    hora_inicio: "18:00"
-    hora_fin: "20:50"
+    hora_inicio: "14:00"
+    hora_fin: "15:20"
     tipo: clase
-    nombre: gobierno_procesos
-    codigo: MBIT4208
+    nombre: concurrencia
+    codigo: ISIS4218
 
   - dia_semana: miercoles
     hora_inicio: "08:00"
@@ -78,11 +78,18 @@ bloques_fijos:
     codigo: ISIS3710
 
   - dia_semana: miercoles
-    hora_inicio: "14:00"
-    hora_fin: "15:20"
+    hora_inicio: "12:30"
+    hora_fin: "13:50"
     tipo: clase
     nombre: fisica2
     codigo: FISI1528
+
+  - dia_semana: miercoles
+    hora_inicio: "14:00"
+    hora_fin: "15:20"
+    tipo: clase
+    nombre: concurrencia
+    codigo: ISIS4218
 
   - dia_semana: miercoles
     hora_inicio: "15:30"
@@ -126,8 +133,8 @@ bloques_fijos:
     codigo: MATE1102
 
   - dia_semana: viernes
-    hora_inicio: "14:00"
-    hora_fin: "15:20"
+    hora_inicio: "12:30"
+    hora_fin: "13:50"
     tipo: clase
     nombre: fisica2
     codigo: FISI1528
@@ -138,7 +145,7 @@ nombres_cursos:
   web: "Programación Web"
   fisica2: "Física 2"
   matematica: "Matemática Estructural"
-  gobierno_procesos: "Gobierno de Procesos de Negocio"
+  concurrencia: "Concurrencia, Paralelismo y Distribución"
 
 repos_notas:
   - nombre: notas-algoritmos
@@ -151,8 +158,8 @@ repos_notas:
     ruta_local: "../notas-fisica2"
   - nombre: notas-matematica
     ruta_local: "../notas-matematica"
-  - nombre: notas-gobierno-procesos
-    ruta_local: "../notas-gobierno-procesos"
+  - nombre: notas-concurrencia
+    ruta_local: "../notas-concurrencia"
 
 rutas_repos:
   pendientes: "../pendientes"

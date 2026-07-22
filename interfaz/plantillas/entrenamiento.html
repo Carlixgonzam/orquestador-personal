@@ -52,6 +52,11 @@
           <td>{{ sesion.notas }}</td>
           <td class="fila-acciones">
             <a href="/entrenamiento/{{ indice }}/editar"><button type="button" class="boton-secundario">Editar</button></a>
+            {% if "swimmingdsl (" in sesion.notas %}
+            <form method="post" action="/entrenamiento/{{ indice }}/enviar-a-garmin">
+              <button type="submit" class="boton-secundario">Enviar a Garmin</button>
+            </form>
+            {% endif %}
             <form method="post" action="/entrenamiento/{{ indice }}/eliminar">
               <button type="submit" class="boton-secundario">Eliminar</button>
             </form>

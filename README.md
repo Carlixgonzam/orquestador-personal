@@ -11,7 +11,7 @@ El sistema completo vive en cuatro tipos de repos separados. Este repo (`orquest
 - **orquestador-personal** (este repo): modelos, clientes de datos, motor de reglas y generador de reporte.
 - **pendientes**: repo separado con un archivo `tareas.yaml` con las tareas académicas pendientes (curso, título, deadline, energía requerida, peso académico, estado).
 - **entrenamiento**: repo separado con archivos `plan-semana-XX.yaml` (uno por semana ISO) con las sesiones de entrenamiento planeadas.
-- **notas-*** (seis repos, uno por curso: algoritmos, moviles, web, fisica2, matematica, gobierno-procesos): repos de notas independientes, referenciados solo por ruta local en `config/config.yaml`. Nunca se clonan como submódulo ni se copian dentro de este repo.
+- **notas-*** (seis repos, uno por curso: algoritmos, moviles, web, fisica2, matematica, concurrencia): repos de notas independientes, referenciados solo por ruta local en `config/config.yaml`. Nunca se clonan como submódulo ni se copian dentro de este repo.
 
 `orquestador-personal` solo lee de los repos de entrenamiento y notas. Sí escribe en `pendientes/tareas.yaml`, pero únicamente a través de la interfaz web (agregar, completar o eliminar tareas) — nunca automáticamente durante `ejecutar_diario.py`.
 

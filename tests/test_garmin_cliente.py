@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from fuentes.garmin_cliente import ClienteGarmin
+from fuentes.garmin_workout_builder import construir_workout_natacion
+from fuentes.swimmingdsl_cliente import BloqueNado
 
 RUTA_MOCK = os.path.join(os.path.dirname(__file__), "fixtures", "garmin_mock.json")
 FECHA_PRUEBA = date(2026, 8, 3)
@@ -114,3 +116,23 @@ def test_obtener_nivel_body_battery_delega_con_la_fecha_correcta(cliente_garmin,
 def test_metodos_sin_fecha_explicita_usan_la_fecha_de_hoy(cliente_garmin, cliente_garmin_falso):
     cliente_garmin.obtener_hrv()
     cliente_garmin_falso.get_hrv_data.assert_called_once_with(date.today().isoformat())
+
+
+def test_subir_entrenamiento_natacion_delega_el_workout_y_retorna_la_respuesta(cliente_garmin, cliente_garmin_falso):
+    bloques = [BloqueNado(seccion="main", repeticiones=1, distancia_m=200, estilo="freestyle", intensidad="moderate", pace_segundos=100, descanso_segundos=None)]
+    workout = construir_workout_natacion("Prueba", bloques)
+    cliente_garmin_falso.upload_swimming_workout.return_value = {"workoutId": 42}
+
+    resultado = cliente_garmin.subir_entrenamiento_natacion(workout)
+
+    cliente_garmin_falso.upload_swimming_workout.assert_called_once_with(workout)
+    assert resultado == {"workoutId": 42}
+
+
+def test_programar_entrenamiento_delega_con_id_y_fecha_en_texto(cliente_garmin, cliente_garmin_falso):
+    cliente_garmin_falso.schedule_workout.return_value = {"scheduled": True}
+
+    resultado = cliente_garmin.programar_entrenamiento(42, FECHA_PRUEBA)
+
+    cliente_garmin_falso.schedule_workout.assert_called_once_with(42, "2026-08-03")
+    assert resultado == {"scheduled": True}
