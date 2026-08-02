@@ -113,13 +113,34 @@ def test_generar_svg_pmc_con_varios_dias_genera_las_tres_lineas():
     assert "linea-pmc-forma" in resultado
 
 
+def test_generar_svg_pmc_incluye_marcador_de_hoy_en_el_ultimo_dia():
+    resultado = generar_svg_pmc(
+        ["2026-07-13", "2026-07-14", "2026-07-15"],
+        [1.0, 1.5, 2.0],
+        [2.0, 1.0, 0.5],
+        [-1.0, 0.5, 1.5],
+    )
+
+    assert "linea-marcador-hoy" in resultado
+    assert ">HOY<" in resultado
+
+
+def test_generar_heatmap_entrenamientos_incluye_encabezado_de_dias_y_leyenda():
+    hoy = date(2026, 8, 3)
+
+    resultado = generar_heatmap_entrenamientos([], hoy, numero_semanas=1)
+
+    assert resultado.count("heatmap-dia-nombre") == 7
+    assert "heatmap-leyenda" in resultado
+
+
 def test_generar_heatmap_entrenamientos_marca_nivel_alto_para_sesion_de_alta_intensidad():
     hoy = date(2026, 8, 3)
     sesiones = [SesionEntrenamiento(fecha=hoy, tipo="natacion", intensidad="alta", notas="")]
 
     resultado = generar_heatmap_entrenamientos(sesiones, hoy, numero_semanas=1)
 
-    assert "heatmap-nivel-3" in resultado
+    assert "heatmap-celda heatmap-nivel-3" in resultado
 
 
 def test_generar_heatmap_entrenamientos_trata_descanso_como_nivel_bajo():
@@ -128,9 +149,9 @@ def test_generar_heatmap_entrenamientos_trata_descanso_como_nivel_bajo():
 
     resultado = generar_heatmap_entrenamientos(sesiones, hoy, numero_semanas=1)
 
-    assert "heatmap-nivel-1" in resultado
-    assert "heatmap-nivel-2" not in resultado
-    assert "heatmap-nivel-3" not in resultado
+    assert "heatmap-celda heatmap-nivel-1" in resultado
+    assert "heatmap-celda heatmap-nivel-2" not in resultado
+    assert "heatmap-celda heatmap-nivel-3" not in resultado
 
 
 def test_generar_heatmap_entrenamientos_dia_sin_sesion_es_nivel_cero():
@@ -138,5 +159,5 @@ def test_generar_heatmap_entrenamientos_dia_sin_sesion_es_nivel_cero():
 
     resultado = generar_heatmap_entrenamientos([], hoy, numero_semanas=1)
 
-    assert "heatmap-nivel-0" in resultado
+    assert "heatmap-celda heatmap-nivel-0" in resultado
     assert resultado.count("heatmap-celda") == 7

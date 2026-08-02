@@ -1,21 +1,11 @@
 {% extends "base.html" %}
-{% macro anillo(valor, etiqueta, color) %}
-{% set proporcion = ((valor or 0) / 100) %}
-<div class="anillo-contenedor">
-  <svg viewBox="0 0 100 100" class="anillo-svg">
-    <circle cx="50" cy="50" r="42" class="anillo-fondo"></circle>
-    <circle cx="50" cy="50" r="42" class="anillo-progreso" style="stroke:{{ color }}; stroke-dasharray:263.9; stroke-dashoffset:{{ 263.9 * (1 - proporcion) }}"></circle>
-  </svg>
-  <div class="anillo-texto">
-    <span class="anillo-valor">{{ valor }}</span>
-    <span class="anillo-etiqueta">{{ etiqueta }}</span>
-  </div>
-</div>
-{% endmacro %}
 {% block contenido %}
   <section class="bloque">
     <div class="cabecera-reporte">
-      <h2>{{ snapshot.dia_semana | capitalize if snapshot else "Hoy" }}{% if snapshot %} — {{ snapshot.fecha }}{% endif %}</h2>
+      <div>
+        <h1 class="saludo">{{ saludo }}<span>, {{ snapshot.dia_semana | capitalize if snapshot else "hoy" }}{% if snapshot %} — {{ snapshot.fecha }}{% endif %}.</span></h1>
+        <p class="saludo-sub">{% if snapshot %}Datos de Garmin sincronizados.{% else %}Aun no se ha sincronizado nada.{% endif %}</p>
+      </div>
       <form method="post" action="/regenerar">
         <button type="submit">Regenerar con Garmin</button>
       </form>
@@ -37,12 +27,49 @@
     {% endif %}
 
     {% if snapshot.estado_fisiologico %}
-    <div class="fila-anillos">
-      {{ anillo(snapshot.estado_fisiologico.training_readiness, "Disposicion", "var(--acento)") }}
-      {{ anillo(snapshot.estado_fisiologico.body_battery, "Body battery", "var(--exito)") }}
+    <div class="cuadricula-stats-panel">
+      <div class="tarjeta-stat tarjeta-stat-azul">
+        <div class="tarjeta-stat-cabecera">
+          <span class="tarjeta-stat-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13 3 L5 13h5l-1 8 8-10h-5z"></path></svg>
+          </span>
+          <span class="tarjeta-stat-etiqueta">Body battery</span>
+        </div>
+        <span class="tarjeta-stat-valor">{{ snapshot.estado_fisiologico.body_battery }}%</span>
+      </div>
+
+      <div class="tarjeta-stat tarjeta-stat-verde">
+        <div class="tarjeta-stat-cabecera">
+          <span class="tarjeta-stat-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"></path><path d="M12 16 L16 10"></path><circle cx="12" cy="16" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+          </span>
+          <span class="tarjeta-stat-etiqueta">Disposicion</span>
+        </div>
+        <span class="tarjeta-stat-valor">{{ snapshot.estado_fisiologico.training_readiness }}%</span>
+      </div>
+
+      <div class="tarjeta-stat tarjeta-stat-rosa">
+        <div class="tarjeta-stat-cabecera">
+          <span class="tarjeta-stat-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"></path></svg>
+          </span>
+          <span class="tarjeta-stat-etiqueta">HRV</span>
+        </div>
+        <span class="tarjeta-stat-valor">{{ snapshot.estado_fisiologico.hrv_valor_ms | default("-", true) }} ms</span>
+        <span class="tarjeta-stat-caption">{{ snapshot.estado_fisiologico.hrv_status }}</span>
+      </div>
+
+      <div class="tarjeta-stat tarjeta-stat-morado">
+        <div class="tarjeta-stat-cabecera">
+          <span class="tarjeta-stat-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16 L10 10 L14 14 L20 6"></path><path d="M14 6 H20 V12"></path></svg>
+          </span>
+          <span class="tarjeta-stat-etiqueta">Estado de entrenamiento</span>
+        </div>
+        <span class="tarjeta-stat-valor-texto">{{ snapshot.estado_fisiologico.training_status | lower }}</span>
+      </div>
     </div>
     <div class="linea-stats-secundarias">
-      <span>HRV <strong>{{ snapshot.estado_fisiologico.hrv_valor_ms | default("-", true) }} ms</strong></span>
       {% if snapshot.estado_fisiologico.acwr is not none %}
       <span>ACWR <strong>{{ snapshot.estado_fisiologico.acwr }}</strong></span>
       {% endif %}
@@ -53,7 +80,6 @@
       <span>Estres <strong>{{ snapshot.estado_fisiologico.estres_promedio }}</strong></span>
       {% endif %}
     </div>
-    <p class="subtexto-estado">Estado de entrenamiento: <strong>{{ snapshot.estado_fisiologico.training_status }}</strong> · HRV: <strong>{{ snapshot.estado_fisiologico.hrv_status }}</strong></p>
     {% else %}
     <p class="grafica-vacia">Sin datos de Garmin disponibles hoy.</p>
     {% endif %}
@@ -64,7 +90,7 @@
       {% for asignacion in snapshot.resultado.asignaciones %}
       <div class="linea-tiempo-fila">
         <div class="linea-tiempo-riel">
-          <span class="linea-tiempo-punto"></span>
+          <span class="linea-tiempo-punto{% if asignacion.tarea %} linea-tiempo-punto-{{ asignacion.tarea.energia_requerida }}{% endif %}"></span>
           {% if not loop.last %}<span class="linea-tiempo-conector"></span>{% endif %}
         </div>
         <div class="linea-tiempo-contenido">
@@ -84,18 +110,39 @@
     <p class="grafica-vacia">No hay huecos libres hoy.</p>
     {% endif %}
 
-    <h3>Entrenamiento de hoy</h3>
-    {% if snapshot.resultado.recomendacion_entrenamiento %}
-    {% set r = snapshot.resultado.recomendacion_entrenamiento %}
-    {% if r.sesion_planeada %}
-    <p>{{ r.sesion_planeada.tipo | capitalize }} ({{ r.sesion_planeada.intensidad }}) — {{ r.sesion_planeada.notas }}<br>
-    <span class="subtexto-estado">Ajuste: <strong>{{ r.tipo_ajuste }}</strong> — {{ r.justificacion }}</span></p>
-    {% else %}
-    <p class="grafica-vacia">{{ r.justificacion }}</p>
-    {% endif %}
-    {% else %}
-    <p class="grafica-vacia">Sin informacion de entrenamiento disponible.</p>
-    {% endif %}
+    <h3>Recomendaciones de hoy</h3>
+    <div class="panel-recomendaciones">
+      {% for alerta in snapshot.resultado.alertas %}
+      <div class="tarjeta-recomendacion tarjeta-recomendacion-critico">
+        <span class="tarjeta-recomendacion-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 8v5"></path><circle cx="12" cy="16.5" r="0.9" fill="currentColor" stroke="none"></circle><path d="M10.6 3.3 2.5 18a1.6 1.6 0 0 0 1.4 2.4h16.2a1.6 1.6 0 0 0 1.4-2.4L13.4 3.3a1.6 1.6 0 0 0-2.8 0z"></path></svg>
+        </span>
+        <div>
+          <div class="tarjeta-recomendacion-titulo">Alerta</div>
+          <div class="tarjeta-recomendacion-texto">{{ alerta }}</div>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% if snapshot.resultado.recomendacion_entrenamiento %}
+      {% set r = snapshot.resultado.recomendacion_entrenamiento %}
+      <div class="tarjeta-recomendacion tarjeta-recomendacion-{{ "verde" if r.tipo_ajuste == "mantener" else ("morado" if r.tipo_ajuste == "recuperacion_activa" else ("rosa" if r.tipo_ajuste == "reducir_intensidad" else "azul")) }}">
+        <span class="tarjeta-recomendacion-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16"></path><path d="M17 4v16"></path><path d="M3 9h4"></path><path d="M3 15h4"></path><path d="M17 9h4"></path><path d="M17 15h4"></path></svg>
+        </span>
+        <div>
+          <div class="tarjeta-recomendacion-titulo">Entrenamiento de hoy</div>
+          <div class="tarjeta-recomendacion-texto">
+            {% if r.sesion_planeada %}{{ r.sesion_planeada.tipo | capitalize }} ({{ r.sesion_planeada.intensidad }}) — {% endif %}{{ r.justificacion }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if not snapshot.resultado.alertas and not snapshot.resultado.recomendacion_entrenamiento %}
+      <p class="grafica-vacia">Sin recomendaciones adicionales por ahora.</p>
+      {% endif %}
+    </div>
 
     {% endif %}
   </section>

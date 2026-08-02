@@ -2,23 +2,23 @@
 {% block titulo %} — Rendimiento{% endblock %}
 {% block contenido %}
   <section class="bloque">
-    <h2>Fitness, fatiga y forma</h2>
-    <p class="subtexto-estado">Estimado a partir de tu disposicion diaria de Garmin: fitness es el promedio movil de 42 dias, fatiga el de 7 dias, forma es la diferencia entre ambos.</p>
-    <div class="panel">
-      {{ grafica_pmc | safe }}
-      <div class="leyenda-pmc">
-        <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-fitness"></span>Fitness</span>
-        <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-fatiga"></span>Fatiga</span>
-        <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-forma"></span>Forma</span>
+    <div class="cuadricula-dos-columnas">
+      <div class="panel">
+        <h3>Fitness / fatiga</h3>
+        <p class="subtexto-estado">Estimado a partir de tu disposicion diaria de Garmin: fitness es el promedio movil de 42 dias, fatiga el de 7, forma es la diferencia entre ambos.</p>
+        {{ grafica_pmc | safe }}
+        <div class="leyenda-pmc">
+          <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-fitness"></span>Fitness</span>
+          <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-fatiga"></span>Fatiga</span>
+          <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-forma"></span>Forma</span>
+        </div>
       </div>
-    </div>
-  </section>
 
-  <section class="bloque">
-    <h2>Calendario de entrenamientos</h2>
-    <p class="subtexto-estado">Ultimas 12 semanas, entre mas oscura la celda mayor la intensidad del dia.</p>
-    <div class="panel">
-      {{ heatmap_entrenamientos | safe }}
+      <div class="panel">
+        <h3>Calendario de entrenamientos</h3>
+        <p class="subtexto-estado">Ultimas 12 semanas, entre mas oscura la celda mayor la intensidad del dia.</p>
+        {{ heatmap_entrenamientos | safe }}
+      </div>
     </div>
   </section>
 

@@ -1,5 +1,5 @@
 import os
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import requests
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -101,6 +101,15 @@ def _bloques_fijos_por_dia_de_la_semana(lunes: date) -> dict[str, list]:
     return bloques_por_dia
 
 
+def _saludo_del_momento() -> str:
+    hora = datetime.now().hour
+    if hora < 12:
+        return "Buenos dias"
+    if hora < 19:
+        return "Buenas tardes"
+    return "Buenas noches"
+
+
 @app.route("/")
 def index():
     return render_template(
@@ -109,6 +118,7 @@ def index():
         snapshot=_cargar_snapshot_hoy(),
         hallazgos_por_curso=hallazgos_por_curso(_repos_notas()),
         nombres_cursos=_nombres_cursos(),
+        saludo=_saludo_del_momento(),
     )
 
 

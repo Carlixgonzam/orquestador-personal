@@ -10,6 +10,7 @@ DIAS_CTL = 42
 DIAS_ATL = 7
 NUMERO_SEMANAS_HEATMAP = 12
 ORDEN_INTENSIDAD = {"baja": 1, "moderada": 2, "alta": 3}
+DIAS_ABREVIADOS = ["L", "M", "X", "J", "V", "S", "D"]
 
 
 def _serie_numerica(filas: list[dict], campo: str) -> tuple[list[str], list[float]]:
@@ -117,8 +118,12 @@ def generar_svg_pmc(
             coordenadas.append(f"{x:.1f},{y:.1f}")
         return " ".join(coordenadas)
 
+    x_hoy = MARGEN_IZQUIERDO + (len(fitness) - 1) * paso_x
+
     return (
         f'<svg class="grafica-linea grafica-pmc" viewBox="0 0 {ancho} {alto}" xmlns="http://www.w3.org/2000/svg">'
+        f'<line x1="{x_hoy:.1f}" y1="{MARGEN}" x2="{x_hoy:.1f}" y2="{alto - MARGEN}" class="linea-marcador-hoy"></line>'
+        f'<text x="{x_hoy:.1f}" y="{MARGEN - 4}" text-anchor="middle" class="etiqueta-eje etiqueta-marcador-hoy">HOY</text>'
         f'<polyline points="{_puntos(fitness)}" class="linea-pmc linea-pmc-fitness"></polyline>'
         f'<polyline points="{_puntos(fatiga)}" class="linea-pmc linea-pmc-fatiga"></polyline>'
         f'<polyline points="{_puntos(forma)}" class="linea-pmc linea-pmc-forma"></polyline>'
@@ -164,7 +169,29 @@ def generar_heatmap_entrenamientos(sesiones: list, hoy: date, numero_semanas: in
             celdas.append(f'<div class="heatmap-celda heatmap-nivel-{nivel}" title="{titulo}"></div>')
         columnas.append(f'<div class="heatmap-columna">{"".join(celdas)}</div>')
 
-    return f'<div class="heatmap-entrenamientos">{"".join(columnas)}</div>'
+    encabezado_dias = "".join(f'<span class="heatmap-dia-nombre">{nombre}</span>' for nombre in DIAS_ABREVIADOS)
+    leyenda = (
+        '<div class="heatmap-leyenda">'
+        "<span>Menos</span>"
+        '<span class="heatmap-leyenda-celdas">'
+        '<span class="heatmap-leyenda-punto heatmap-nivel-0"></span>'
+        '<span class="heatmap-leyenda-punto heatmap-nivel-1"></span>'
+        '<span class="heatmap-leyenda-punto heatmap-nivel-2"></span>'
+        '<span class="heatmap-leyenda-punto heatmap-nivel-3"></span>'
+        "</span>"
+        "<span>Mas</span>"
+        "</div>"
+    )
+
+    return (
+        '<div class="heatmap-envoltorio">'
+        '<div class="heatmap-fila">'
+        f'<div class="heatmap-cabecera-dias">{encabezado_dias}</div>'
+        f'<div class="heatmap-entrenamientos">{"".join(columnas)}</div>'
+        "</div>"
+        f"{leyenda}"
+        "</div>"
+    )
 
 
 def generar_graficas_de_historial(filas: list[dict]) -> dict[str, str]:
