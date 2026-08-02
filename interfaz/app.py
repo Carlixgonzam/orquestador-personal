@@ -26,6 +26,7 @@ from fuentes.pendientes_cliente import (
     eliminar_tarea,
 )
 from fuentes.swimmingdsl_cliente import ClienteSwimmingDSL, construir_sesion_desde_resultado, parsear_codigo_dsl
+from fuentes.syllabus_cliente import ClienteSyllabus, construir_tareas_desde_extraccion
 from interfaz.graficas import (
     calcular_fitness_fatiga_forma,
     generar_graficas_de_historial,
@@ -35,12 +36,14 @@ from interfaz.graficas import (
 from interfaz.vista_semanal import calcular_lunes_de_la_semana, construir_vista_semanal
 from modelo.sesion_entrenamiento import SesionEntrenamiento
 from modelo.tarea import Tarea
+from motor.agente_entrenamiento import sugerir_parametros_sesion
 from salida.snapshot_diario import cargar_snapshot_diario
 from scripts.ejecutar_diario import (
     RUTA_CONFIG_POR_DEFECTO,
     RUTA_HISTORIAL_POR_DEFECTO,
     RUTA_SNAPSHOT_POR_DEFECTO,
     _cargar_configuracion,
+    construir_estado_fisiologico,
     construir_horario_hoy,
     ejecutar,
 )
@@ -148,6 +151,25 @@ def crear_tarea():
     return redirect(url_for("index"))
 
 
+@app.route("/tareas/subir-syllabus", methods=["POST"])
+def subir_syllabus():
+    curso = request.form["curso"]
+    archivo = request.files["archivo"]
+    try:
+        cliente_syllabus = ClienteSyllabus()
+        extraccion = cliente_syllabus.extraer_fechas_academicas(archivo.read())
+        tareas_nuevas = construir_tareas_desde_extraccion(extraccion, curso)
+        for tarea in tareas_nuevas:
+            agregar_tarea(_ruta_repo_pendientes(), tarea)
+        flash(
+            f"Se agregaron {len(tareas_nuevas)} tareas desde el syllabus "
+            f"({len(extraccion.get('parciales', []))} parciales, {len(extraccion.get('tareas', []))} entregas)."
+        )
+    except Exception as error:
+        flash(f"No se pudo procesar el syllabus: {error}")
+    return redirect(url_for("index"))
+
+
 @app.route("/tareas/<int:indice>/editar", methods=["GET"])
 def formulario_editar_tarea(indice: int):
     tareas = cargar_todas_las_tareas(_ruta_repo_pendientes())
@@ -194,10 +216,38 @@ def regenerar_reporte():
 
 @app.route("/entrenamiento")
 def entrenamiento():
+    sesiones = _sesiones_ordenadas_con_indice()
+    detalle_por_indice = {}
+    for indice, sesion in sesiones:
+        codigo_dsl = _extraer_codigo_dsl(sesion.notas)
+        if codigo_dsl is not None:
+            bloques = parsear_codigo_dsl(codigo_dsl)
+            detalle_por_indice[indice] = {
+                "bloques": bloques,
+                "distancia_total": sum(bloque.repeticiones * bloque.distancia_m for bloque in bloques),
+            }
+
+    sugerencia = None
+    if request.args.get("sugerir"):
+        try:
+            configuracion = _cargar_configuracion(RUTA_CONFIG_POR_DEFECTO)
+            umbrales = configuracion.get("umbrales", {})
+            estado_fisiologico = construir_estado_fisiologico(ClienteGarmin(), date.today())
+            sugerencia = sugerir_parametros_sesion(
+                estado_fisiologico,
+                acwr_limite=umbrales.get("acwr_limite", 1.5),
+                body_battery_bajo=umbrales.get("body_battery_bajo", 40),
+                body_battery_medio=umbrales.get("body_battery_medio", 70),
+            )
+        except Exception as error:
+            flash(f"No se pudo obtener una sugerencia con datos de Garmin: {error}")
+
     return render_template(
         "entrenamiento.html",
-        sesiones=_sesiones_ordenadas_con_indice(),
+        sesiones=sesiones,
+        detalle_por_indice=detalle_por_indice,
         nombre_archivo=nombre_archivo_plan_semana_actual(),
+        sugerencia=sugerencia,
     )
 
 

@@ -186,6 +186,11 @@ table {
   border-collapse: collapse;
   font-size: 0.88rem;
 }
+.tabla-detalle-sesion {
+  min-width: 420px;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
 th, td {
   text-align: left;
   padding: 0.65rem 0.6rem;

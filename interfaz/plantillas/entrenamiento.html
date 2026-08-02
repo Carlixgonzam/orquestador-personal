@@ -20,10 +20,10 @@
           <td>{{ sesion.fecha }}</td>
           <td>{{ sesion.tipo }}</td>
           <td><span class="etiqueta etiqueta-{{ "alta" if sesion.intensidad == "alta" else ("baja" if sesion.intensidad == "baja" else "media") }}">{{ sesion.intensidad }}</span></td>
-          <td>{{ sesion.notas }}</td>
+          <td>{% if indice in detalle_por_indice %}{{ detalle_por_indice[indice].distancia_total }}m generados con swimmingdsl{% else %}{{ sesion.notas }}{% endif %}</td>
           <td class="fila-acciones">
             <a href="/entrenamiento/{{ indice }}/editar"><button type="button" class="boton-secundario">Editar</button></a>
-            {% if "swimmingdsl (" in sesion.notas %}
+            {% if indice in detalle_por_indice %}
             <form method="post" action="/entrenamiento/{{ indice }}/enviar-a-garmin">
               <button type="submit" class="boton-secundario">Enviar a Garmin</button>
             </form>
@@ -33,6 +33,40 @@
             </form>
           </td>
         </tr>
+        {% if indice in detalle_por_indice %}
+        <tr class="fila-notas">
+          <td colspan="5">
+            <div class="tabla-scroll">
+            <table class="tabla-detalle-sesion">
+              <thead>
+                <tr>
+                  <th>Seccion</th>
+                  <th>Rep.</th>
+                  <th>Distancia</th>
+                  <th>Estilo</th>
+                  <th>Intensidad</th>
+                  <th>Pace</th>
+                  <th>Descanso</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for bloque in detalle_por_indice[indice].bloques %}
+                <tr>
+                  <td>{{ bloque.seccion }}</td>
+                  <td>{{ bloque.repeticiones }}</td>
+                  <td>{{ bloque.distancia_m }}m</td>
+                  <td>{{ bloque.estilo or "-" }}</td>
+                  <td>{{ bloque.intensidad or "-" }}</td>
+                  <td>{{ bloque.pace_segundos }}s/100m</td>
+                  <td>{{ bloque.descanso_segundos ~ "s" if bloque.descanso_segundos else "-" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            </div>
+          </td>
+        </tr>
+        {% endif %}
         {% endfor %}
       </tbody>
     </table>
@@ -71,33 +105,39 @@
   </section>
 
   <section class="bloque">
-    <h2>Generar sesion con swimmingdsl</h2>
+    <div class="cabecera-reporte">
+      <h2>Generar sesion con swimmingdsl</h2>
+      <a href="/entrenamiento?sugerir=1#generar-dsl"><button type="button" class="boton-secundario">Sugerir segun Garmin</button></a>
+    </div>
     <p class="subtexto-estado">Requiere que tengas corriendo <code>npm start</code> en <code>swimmingdsl/server</code> localmente.</p>
-    <div class="panel">
+    {% if sugerencia %}
+    <div class="aviso aviso-neutro">Sugerencia del agente: {{ sugerencia.justificacion }}.</div>
+    {% endif %}
+    <div class="panel" id="generar-dsl">
     <form class="formulario-tarea" method="post" action="/entrenamiento/generar-dsl">
       <label>Fecha
         <input type="date" name="fecha" required>
       </label>
       <label>Objetivo
         <select name="objetivo" required>
-          <option value="endurance">Resistencia</option>
-          <option value="speed">Velocidad</option>
-          <option value="technique">Tecnica</option>
-          <option value="recovery">Recuperacion</option>
+          <option value="endurance" {% if sugerencia and sugerencia.objetivo == "endurance" %}selected{% endif %}>Resistencia</option>
+          <option value="speed" {% if sugerencia and sugerencia.objetivo == "speed" %}selected{% endif %}>Velocidad</option>
+          <option value="technique" {% if sugerencia and sugerencia.objetivo == "technique" %}selected{% endif %}>Tecnica</option>
+          <option value="recovery" {% if sugerencia and sugerencia.objetivo == "recovery" %}selected{% endif %}>Recuperacion</option>
         </select>
       </label>
       <label>Distancia (m)
-        <input type="number" name="distancia" min="100" step="100" value="2000" required>
+        <input type="number" name="distancia" min="100" step="100" value="{{ sugerencia.distancia if sugerencia else 2000 }}" required>
       </label>
       <label>Duracion (min)
-        <input type="number" name="duracion" min="15" step="5" value="60" required>
+        <input type="number" name="duracion" min="15" step="5" value="{{ sugerencia.duracion if sugerencia else 60 }}" required>
       </label>
       <label>Estilos
         <select name="estilos" multiple required>
-          <option value="freestyle" selected>Libre</option>
-          <option value="backstroke">Espalda</option>
-          <option value="breaststroke">Pecho</option>
-          <option value="butterfly">Mariposa</option>
+          <option value="freestyle" {% if not sugerencia or "freestyle" in sugerencia.estilos %}selected{% endif %}>Libre</option>
+          <option value="backstroke" {% if sugerencia and "backstroke" in sugerencia.estilos %}selected{% endif %}>Espalda</option>
+          <option value="breaststroke" {% if sugerencia and "breaststroke" in sugerencia.estilos %}selected{% endif %}>Pecho</option>
+          <option value="butterfly" {% if sugerencia and "butterfly" in sugerencia.estilos %}selected{% endif %}>Mariposa</option>
         </select>
       </label>
       <button type="submit">Generar y agregar</button>

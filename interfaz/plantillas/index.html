@@ -192,4 +192,24 @@
     </form>
     </div>
   </section>
+
+  <section class="bloque">
+    <h2>Subir syllabus</h2>
+    <p class="subtexto-estado">Sube el PDF del syllabus de un curso y se extraen automaticamente los parciales, tareas y bloques de estudio.</p>
+    <div class="panel">
+    <form class="formulario-tarea" method="post" action="/tareas/subir-syllabus" enctype="multipart/form-data">
+      <label>Curso
+        <select name="curso" required>
+          {% for curso_slug, nombre_completo in nombres_cursos.items() %}
+          <option value="{{ curso_slug }}">{{ nombre_completo }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Archivo PDF
+        <input type="file" name="archivo" accept="application/pdf" required>
+      </label>
+      <button type="submit">Procesar syllabus</button>
+    </form>
+    </div>
+  </section>
 {% endblock %}
