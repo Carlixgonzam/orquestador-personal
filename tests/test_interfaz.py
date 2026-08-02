@@ -117,7 +117,7 @@ def test_index_muestra_el_dashboard_con_stats_del_snapshot(cliente_de_prueba):
     cliente, _, _ = cliente_de_prueba
     cuerpo = cliente.get("/").get_data(as_text=True)
 
-    assert "cuadricula-stats" in cuerpo
+    assert "fila-anillos" in cuerpo
     assert "60" in cuerpo
     assert "Body battery" in cuerpo
     assert "<pre>" not in cuerpo
@@ -148,8 +148,8 @@ def test_index_con_bloque_fijo_activo_muestra_el_banner_y_omite_las_tarjetas(cli
 
     cuerpo = cliente.get("/").get_data(as_text=True)
 
-    assert "banner-bloque-activo" in cuerpo
-    assert "cuadricula-stats" not in cuerpo
+    assert "aviso-neutro" in cuerpo
+    assert "fila-anillos" not in cuerpo
 
 
 def test_index_muestra_hallazgos_de_notas_para_el_curso_de_la_tarea(cliente_de_prueba):

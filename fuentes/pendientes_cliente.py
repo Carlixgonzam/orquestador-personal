@@ -17,6 +17,7 @@ def _tarea_desde_diccionario(datos: dict) -> Tarea:
         energia_requerida=datos["energia_requerida"],
         peso_academico=float(datos["peso_academico"]),
         estado=datos["estado"],
+        detalles=datos.get("detalles") or "",
     )
 
 
@@ -28,6 +29,7 @@ def _tarea_a_diccionario(tarea: Tarea) -> dict:
         "energia_requerida": tarea.energia_requerida,
         "peso_academico": tarea.peso_academico,
         "estado": tarea.estado,
+        "detalles": tarea.detalles,
     }
 
 

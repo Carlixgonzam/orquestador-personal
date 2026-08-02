@@ -9,6 +9,7 @@ from fuentes.entrenamiento_cliente import (
     actualizar_sesion,
     agregar_sesion,
     cargar_plan_semana_actual,
+    cargar_todas_las_sesiones,
     eliminar_sesion,
     nombre_archivo_plan_semana_actual,
 )
@@ -25,7 +26,12 @@ from fuentes.pendientes_cliente import (
     eliminar_tarea,
 )
 from fuentes.swimmingdsl_cliente import ClienteSwimmingDSL, construir_sesion_desde_resultado, parsear_codigo_dsl
-from interfaz.graficas import generar_graficas_de_historial
+from interfaz.graficas import (
+    calcular_fitness_fatiga_forma,
+    generar_graficas_de_historial,
+    generar_heatmap_entrenamientos,
+    generar_svg_pmc,
+)
 from interfaz.vista_semanal import calcular_lunes_de_la_semana, construir_vista_semanal
 from modelo.sesion_entrenamiento import SesionEntrenamiento
 from modelo.tarea import Tarea
@@ -116,10 +122,14 @@ def semana():
 @app.route("/rendimiento")
 def rendimiento():
     filas = cargar_historial(RUTA_HISTORIAL_POR_DEFECTO)
+    fechas_pmc, fitness, fatiga, forma = calcular_fitness_fatiga_forma(filas)
+    sesiones = cargar_todas_las_sesiones(_ruta_repo_entrenamiento())
     return render_template(
         "rendimiento.html",
         filas=filas,
         graficas=generar_graficas_de_historial(filas),
+        grafica_pmc=generar_svg_pmc(fechas_pmc, fitness, fatiga, forma),
+        heatmap_entrenamientos=generar_heatmap_entrenamientos(sesiones, date.today()),
     )
 
 
@@ -132,6 +142,7 @@ def crear_tarea():
         energia_requerida=request.form["energia_requerida"],
         peso_academico=float(request.form["peso_academico"]),
         estado="pendiente",
+        detalles=request.form.get("detalles", ""),
     )
     agregar_tarea(_ruta_repo_pendientes(), tarea_nueva)
     return redirect(url_for("index"))
@@ -157,6 +168,7 @@ def guardar_edicion_tarea(indice: int):
         energia_requerida=request.form["energia_requerida"],
         peso_academico=float(request.form["peso_academico"]),
         estado=request.form["estado"],
+        detalles=request.form.get("detalles", ""),
     )
     actualizar_tarea(_ruta_repo_pendientes(), indice, tarea_actualizada)
     return redirect(url_for("index"))

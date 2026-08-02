@@ -32,12 +32,12 @@ def _primer_elemento(lista, valor_por_defecto=None):
 
 
 def _datos_del_dispositivo_principal(datos_estado_entrenamiento: dict) -> dict:
-    valores_por_dispositivo = datos_estado_entrenamiento.get("mostRecentTrainingStatus", {}).get(
-        "latestTrainingStatusData", {}
-    )
+    valores_por_dispositivo = (datos_estado_entrenamiento.get("mostRecentTrainingStatus") or {}).get(
+        "latestTrainingStatusData"
+    ) or {}
     if not valores_por_dispositivo:
         return {}
-    return next(iter(valores_por_dispositivo.values()))
+    return next(iter(valores_por_dispositivo.values())) or {}
 
 
 def _extraer_clasificacion_entrenamiento(datos_estado_entrenamiento: dict) -> str:
@@ -51,30 +51,32 @@ def _extraer_clasificacion_entrenamiento(datos_estado_entrenamiento: dict) -> st
 
 def _extraer_acwr(datos_estado_entrenamiento: dict) -> float | None:
     datos_dispositivo = _datos_del_dispositivo_principal(datos_estado_entrenamiento)
-    return datos_dispositivo.get("acuteTrainingLoadDTO", {}).get("dailyAcuteChronicWorkloadRatio")
+    return (datos_dispositivo.get("acuteTrainingLoadDTO") or {}).get("dailyAcuteChronicWorkloadRatio")
 
 
 def _extraer_vo2_max(datos_estado_entrenamiento: dict) -> float | None:
-    return datos_estado_entrenamiento.get("mostRecentVO2Max", {}).get("generic", {}).get("vo2MaxValue")
+    datos_generic = (datos_estado_entrenamiento.get("mostRecentVO2Max") or {}).get("generic") or {}
+    return datos_generic.get("vo2MaxValue")
 
 
 def _extraer_frecuencia_cardiaca_reposo(datos_rhr: dict) -> int | None:
-    metricas = datos_rhr.get("allMetrics", {}).get("metricsMap", {})
-    valores = metricas.get("WELLNESS_RESTING_HEART_RATE", [])
-    return _primer_elemento(valores, {}).get("value")
+    metricas = (datos_rhr.get("allMetrics") or {}).get("metricsMap") or {}
+    valores = metricas.get("WELLNESS_RESTING_HEART_RATE") or []
+    return (_primer_elemento(valores, {}) or {}).get("value")
 
 
 def _extraer_nivel_body_battery(datos_body_battery: list) -> int:
-    primer_dia = _primer_elemento(datos_body_battery, {})
-    valores_del_dia = primer_dia.get("bodyBatteryValuesArray", [])
-    if not valores_del_dia:
-        return primer_dia.get("charged", 0)
-    return valores_del_dia[-1][1]
+    primer_dia = _primer_elemento(datos_body_battery, {}) or {}
+    valores_del_dia = primer_dia.get("bodyBatteryValuesArray") or []
+    for _, valor in reversed(valores_del_dia):
+        if valor is not None:
+            return valor
+    return primer_dia.get("charged") or 0
 
 
 def construir_estado_fisiologico(cliente_garmin: ClienteGarmin, fecha: date) -> EstadoFisiologico:
-    disposicion = _primer_elemento(cliente_garmin.obtener_disposicion_entrenamiento(fecha), {})
-    resumen_hrv = (cliente_garmin.obtener_hrv(fecha) or {}).get("hrvSummary", {})
+    disposicion = _primer_elemento(cliente_garmin.obtener_disposicion_entrenamiento(fecha), {}) or {}
+    resumen_hrv = (cliente_garmin.obtener_hrv(fecha) or {}).get("hrvSummary") or {}
     datos_estado_entrenamiento = cliente_garmin.obtener_estado_entrenamiento(fecha) or {}
     datos_score_resistencia = cliente_garmin.obtener_score_resistencia(fecha) or {}
     datos_predicciones = cliente_garmin.obtener_predicciones_carrera() or {}

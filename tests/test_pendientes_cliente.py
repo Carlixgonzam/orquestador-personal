@@ -32,6 +32,11 @@ def test_cargar_todas_las_tareas_parsea_los_campos_correctamente():
     assert tarea_grafos.estado == "pendiente"
 
 
+def test_cargar_todas_las_tareas_usa_cadena_vacia_si_falta_detalles_en_el_yaml():
+    tareas = cargar_todas_las_tareas(RUTA_REPO_PENDIENTES_MOCK)
+    assert all(tarea.detalles == "" for tarea in tareas)
+
+
 def test_cargar_tareas_pendientes_excluye_las_tareas_completadas():
     tareas_pendientes = cargar_tareas_pendientes(RUTA_REPO_PENDIENTES_MOCK)
 
@@ -60,6 +65,16 @@ def test_guardar_todas_las_tareas_permite_releer_lo_mismo_que_se_guardo(tmp_path
 
     tareas_releidas = cargar_todas_las_tareas(ruta_repo_prueba)
     assert tareas_releidas == tareas_nuevas
+
+
+def test_guardar_todas_las_tareas_conserva_los_detalles(tmp_path):
+    ruta_repo_prueba = _construir_repo_pendientes_de_prueba(tmp_path)
+    tareas_nuevas = [Tarea("web", "Tarea con detalles", date(2026, 9, 1), "media", 3.0, "pendiente", "Enunciado completo aqui")]
+
+    guardar_todas_las_tareas(ruta_repo_prueba, tareas_nuevas)
+
+    tareas_releidas = cargar_todas_las_tareas(ruta_repo_prueba)
+    assert tareas_releidas[0].detalles == "Enunciado completo aqui"
 
 
 def test_agregar_tarea_no_elimina_las_tareas_existentes(tmp_path):

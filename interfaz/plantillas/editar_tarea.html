@@ -1,27 +1,9 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orquestador personal — Editar tarea</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
-</head>
-<body>
-<header class="mastodon">
-  <div class="mastodon-interior">
-    <h1>Orquestador <span>Personal</span></h1>
-    <nav>
-      <a href="/">Hoy y tareas</a>
-      <a href="/rendimiento">Rendimiento</a>
-      <a href="/entrenamiento">Entrenamiento</a>
-      <a href="/semana">Semana</a>
-    </nav>
-    <div class="mastodon-regla"></div>
-  </div>
-</header>
-<main>
-  <section>
+{% extends "base.html" %}
+{% block titulo %} — Editar tarea{% endblock %}
+{% block contenido %}
+  <section class="bloque">
     <h2>Editar tarea</h2>
+    <div class="panel">
     <form class="formulario-tarea" method="post" action="/tareas/{{ indice }}/editar">
       <label>Curso
         <select name="curso" required>
@@ -46,6 +28,9 @@
       <label>Creditos
         <input type="number" name="peso_academico" value="{{ tarea.peso_academico | int }}" min="1" step="1" required>
       </label>
+      <label class="campo-ancho">Detalles
+        <textarea name="detalles" rows="3" placeholder="Contexto, enunciado, enlaces...">{{ tarea.detalles }}</textarea>
+      </label>
       <label>Estado
         <select name="estado" required>
           <option value="pendiente" {% if tarea.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
@@ -55,7 +40,6 @@
       </label>
       <button type="submit">Guardar cambios</button>
     </form>
+    </div>
   </section>
-</main>
-</body>
-</html>
+{% endblock %}

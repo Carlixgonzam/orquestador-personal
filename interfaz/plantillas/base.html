@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestador personal{% block titulo %}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+<div class="estructura">
+  <aside class="barra-lateral">
+    <div class="marca">Orquestador <span>Personal</span></div>
+    <nav class="nav-lateral">
+      <a href="/" class="{{ 'activo' if request.path == '/' else '' }}">Hoy</a>
+      <a href="/semana" class="{{ 'activo' if request.path == '/semana' else '' }}">Semana</a>
+      <a href="/entrenamiento" class="{{ 'activo' if request.path.startswith('/entrenamiento') else '' }}">Entrenamiento</a>
+      <a href="/rendimiento" class="{{ 'activo' if request.path == '/rendimiento' else '' }}">Rendimiento</a>
+    </nav>
+  </aside>
+  <main class="contenido">
+    {% with mensajes = get_flashed_messages() %}
+    {% if mensajes %}
+    <div class="bloque-avisos">
+      {% for mensaje in mensajes %}
+      <div class="aviso">{{ mensaje }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% block contenido %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

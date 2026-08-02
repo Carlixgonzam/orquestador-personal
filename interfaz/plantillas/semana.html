@@ -1,26 +1,7 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orquestador personal — Semana</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
-</head>
-<body>
-<header class="mastodon">
-  <div class="mastodon-interior">
-    <h1>Orquestador <span>Personal</span></h1>
-    <nav>
-      <a href="/">Hoy y tareas</a>
-      <a href="/rendimiento">Rendimiento</a>
-      <a href="/entrenamiento">Entrenamiento</a>
-      <a href="/semana">Semana</a>
-    </nav>
-    <div class="mastodon-regla"></div>
-  </div>
-</header>
-<main>
-  <section>
+{% extends "base.html" %}
+{% block titulo %} — Semana{% endblock %}
+{% block contenido %}
+  <section class="bloque">
     <h2>Semana del {{ dias[0].fecha.strftime('%d/%m') }} al {{ dias[6].fecha.strftime('%d/%m') }}</h2>
     <div class="cuadricula-semana">
       {% for dia in dias %}
@@ -52,6 +33,4 @@
       {% endfor %}
     </div>
   </section>
-</main>
-</body>
-</html>
+{% endblock %}

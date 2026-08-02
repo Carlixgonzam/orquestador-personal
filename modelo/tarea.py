@@ -10,3 +10,4 @@ class Tarea:
     energia_requerida: str
     peso_academico: float
     estado: str
+    detalles: str = ""

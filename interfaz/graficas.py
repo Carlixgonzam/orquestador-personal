@@ -1,7 +1,15 @@
+import html
+from datetime import date, timedelta
+
 MARGEN_IZQUIERDO = 44
 MARGEN = 16
 ANCHO_POR_DEFECTO = 640
 ALTO_POR_DEFECTO = 160
+
+DIAS_CTL = 42
+DIAS_ATL = 7
+NUMERO_SEMANAS_HEATMAP = 12
+ORDEN_INTENSIDAD = {"baja": 1, "moderada": 2, "alta": 3}
 
 
 def _serie_numerica(filas: list[dict], campo: str) -> tuple[list[str], list[float]]:
@@ -60,6 +68,103 @@ def generar_svg_linea(
         f'<text x="{ancho - MARGEN}" y="{alto - 2}" text-anchor="end" class="etiqueta-eje">{fechas[-1]}</text>'
         f"</svg>"
     )
+
+
+def calcular_fitness_fatiga_forma(filas: list[dict]) -> tuple[list[str], list[float], list[float], list[float]]:
+    fechas, disposiciones = _serie_numerica(filas, "training_readiness")
+    cargas = [100.0 - disposicion for disposicion in disposiciones]
+
+    fitness = []
+    fatiga = []
+    forma = []
+    ctl = 0.0
+    atl = 0.0
+    for carga in cargas:
+        ctl += (carga - ctl) / DIAS_CTL
+        atl += (carga - atl) / DIAS_ATL
+        fitness.append(ctl)
+        fatiga.append(atl)
+        forma.append(ctl - atl)
+    return fechas, fitness, fatiga, forma
+
+
+def generar_svg_pmc(
+    fechas: list[str],
+    fitness: list[float],
+    fatiga: list[float],
+    forma: list[float],
+    ancho: int = ANCHO_POR_DEFECTO,
+    alto: int = ALTO_POR_DEFECTO,
+) -> str:
+    if not fitness:
+        return '<p class="grafica-vacia">Todavia no hay suficientes datos.</p>'
+    if len(fitness) == 1:
+        return '<p class="grafica-vacia">Un solo dato hasta ahora, hacen falta mas dias para ver la tendencia.</p>'
+
+    todos_los_valores = fitness + fatiga + forma
+    minimo = min(todos_los_valores)
+    maximo = max(todos_los_valores)
+    rango = (maximo - minimo) or 1
+    ancho_util = ancho - MARGEN_IZQUIERDO - MARGEN
+    alto_util = alto - 2 * MARGEN
+    paso_x = ancho_util / max(len(fitness) - 1, 1)
+
+    def _puntos(serie: list[float]) -> str:
+        coordenadas = []
+        for indice, valor in enumerate(serie):
+            x = MARGEN_IZQUIERDO + indice * paso_x
+            y = MARGEN + alto_util - ((valor - minimo) / rango) * alto_util
+            coordenadas.append(f"{x:.1f},{y:.1f}")
+        return " ".join(coordenadas)
+
+    return (
+        f'<svg class="grafica-linea grafica-pmc" viewBox="0 0 {ancho} {alto}" xmlns="http://www.w3.org/2000/svg">'
+        f'<polyline points="{_puntos(fitness)}" class="linea-pmc linea-pmc-fitness"></polyline>'
+        f'<polyline points="{_puntos(fatiga)}" class="linea-pmc linea-pmc-fatiga"></polyline>'
+        f'<polyline points="{_puntos(forma)}" class="linea-pmc linea-pmc-forma"></polyline>'
+        f'<text x="{MARGEN_IZQUIERDO}" y="{alto - 2}" class="etiqueta-eje">{fechas[0]}</text>'
+        f'<text x="{ancho - MARGEN}" y="{alto - 2}" text-anchor="end" class="etiqueta-eje">{fechas[-1]}</text>'
+        f"</svg>"
+    )
+
+
+def _nivel_del_dia(sesiones_del_dia: list) -> int:
+    if not sesiones_del_dia:
+        return 0
+    niveles = [ORDEN_INTENSIDAD.get(sesion.intensidad, 1) for sesion in sesiones_del_dia if sesion.tipo != "descanso"]
+    if not niveles:
+        return 1
+    return max(niveles)
+
+
+def _describir_dia(fecha_dia: date, sesiones_del_dia: list) -> str:
+    if not sesiones_del_dia:
+        return fecha_dia.isoformat()
+    resumen = ", ".join(f"{sesion.tipo} ({sesion.intensidad})" for sesion in sesiones_del_dia)
+    return f"{fecha_dia.isoformat()}: {resumen}"
+
+
+def generar_heatmap_entrenamientos(sesiones: list, hoy: date, numero_semanas: int = NUMERO_SEMANAS_HEATMAP) -> str:
+    lunes_semana_actual = hoy - timedelta(days=hoy.weekday())
+    lunes_inicio = lunes_semana_actual - timedelta(weeks=numero_semanas - 1)
+
+    sesiones_por_fecha: dict[date, list] = {}
+    for sesion in sesiones:
+        sesiones_por_fecha.setdefault(sesion.fecha, []).append(sesion)
+
+    columnas = []
+    for indice_semana in range(numero_semanas):
+        lunes_de_esta_semana = lunes_inicio + timedelta(weeks=indice_semana)
+        celdas = []
+        for offset_dia in range(7):
+            fecha_dia = lunes_de_esta_semana + timedelta(days=offset_dia)
+            sesiones_del_dia = sesiones_por_fecha.get(fecha_dia, [])
+            nivel = _nivel_del_dia(sesiones_del_dia)
+            titulo = html.escape(_describir_dia(fecha_dia, sesiones_del_dia))
+            celdas.append(f'<div class="heatmap-celda heatmap-nivel-{nivel}" title="{titulo}"></div>')
+        columnas.append(f'<div class="heatmap-columna">{"".join(celdas)}</div>')
+
+    return f'<div class="heatmap-entrenamientos">{"".join(columnas)}</div>'
 
 
 def generar_graficas_de_historial(filas: list[dict]) -> dict[str, str]:

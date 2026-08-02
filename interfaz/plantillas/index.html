@@ -1,26 +1,19 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orquestador personal</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
-</head>
-<body>
-<header class="mastodon">
-  <div class="mastodon-interior">
-    <h1>Orquestador <span>Personal</span></h1>
-    <nav>
-      <a href="/">Hoy y tareas</a>
-      <a href="/rendimiento">Rendimiento</a>
-      <a href="/entrenamiento">Entrenamiento</a>
-      <a href="/semana">Semana</a>
-    </nav>
-    <div class="mastodon-regla"></div>
+{% extends "base.html" %}
+{% macro anillo(valor, etiqueta, color) %}
+{% set proporcion = ((valor or 0) / 100) %}
+<div class="anillo-contenedor">
+  <svg viewBox="0 0 100 100" class="anillo-svg">
+    <circle cx="50" cy="50" r="42" class="anillo-fondo"></circle>
+    <circle cx="50" cy="50" r="42" class="anillo-progreso" style="stroke:{{ color }}; stroke-dasharray:263.9; stroke-dashoffset:{{ 263.9 * (1 - proporcion) }}"></circle>
+  </svg>
+  <div class="anillo-texto">
+    <span class="anillo-valor">{{ valor }}</span>
+    <span class="anillo-etiqueta">{{ etiqueta }}</span>
   </div>
-</header>
-<main>
-  <section>
+</div>
+{% endmacro %}
+{% block contenido %}
+  <section class="bloque">
     <div class="cabecera-reporte">
       <h2>{{ snapshot.dia_semana | capitalize if snapshot else "Hoy" }}{% if snapshot %} — {{ snapshot.fecha }}{% endif %}</h2>
       <form method="post" action="/regenerar">
@@ -31,51 +24,33 @@
     {% if not snapshot %}
     <p class="grafica-vacia">Aun no se ha generado ningun reporte. Presiona "Regenerar con Garmin" para crear el primero.</p>
     {% elif snapshot.resultado.bloque_fijo_activo %}
-    <div class="banner-bloque-activo">
+    <div class="aviso aviso-neutro">
       Estas en <strong>{{ snapshot.nombres_cursos.get(snapshot.resultado.bloque_fijo_activo.nombre, snapshot.resultado.bloque_fijo_activo.nombre) }}</strong>
       ({{ snapshot.resultado.bloque_fijo_activo.hora_inicio[:5] }}-{{ snapshot.resultado.bloque_fijo_activo.hora_fin[:5] }}). Sin recomendaciones mientras dure este bloque.
     </div>
     {% else %}
 
     {% if snapshot.resultado.alertas %}
-    <div class="banner-alertas">
-      {% for alerta in snapshot.resultado.alertas %}
-      <div>{{ alerta }}</div>
-      {% endfor %}
-    </div>
+    {% for alerta in snapshot.resultado.alertas %}
+    <div class="aviso">{{ alerta }}</div>
+    {% endfor %}
     {% endif %}
 
     {% if snapshot.estado_fisiologico %}
-    <div class="cuadricula-stats">
-      <div class="stat-card">
-        <span class="stat-valor">{{ snapshot.estado_fisiologico.training_readiness }}</span>
-        <span class="stat-etiqueta">Disposicion</span>
-      </div>
-      <div class="stat-card stat-primaria">
-        <span class="stat-valor">{{ snapshot.estado_fisiologico.body_battery }}</span>
-        <span class="stat-etiqueta">Body battery</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-valor">{{ snapshot.estado_fisiologico.hrv_valor_ms | default("-", true) }}</span>
-        <span class="stat-etiqueta">HRV (ms)</span>
-      </div>
+    <div class="fila-anillos">
+      {{ anillo(snapshot.estado_fisiologico.training_readiness, "Disposicion", "var(--acento)") }}
+      {{ anillo(snapshot.estado_fisiologico.body_battery, "Body battery", "var(--exito)") }}
+    </div>
+    <div class="linea-stats-secundarias">
+      <span>HRV <strong>{{ snapshot.estado_fisiologico.hrv_valor_ms | default("-", true) }} ms</strong></span>
       {% if snapshot.estado_fisiologico.acwr is not none %}
-      <div class="stat-card">
-        <span class="stat-valor">{{ snapshot.estado_fisiologico.acwr }}</span>
-        <span class="stat-etiqueta">ACWR</span>
-      </div>
+      <span>ACWR <strong>{{ snapshot.estado_fisiologico.acwr }}</strong></span>
       {% endif %}
       {% if snapshot.estado_fisiologico.frecuencia_cardiaca_reposo is not none %}
-      <div class="stat-card">
-        <span class="stat-valor">{{ snapshot.estado_fisiologico.frecuencia_cardiaca_reposo | int }}</span>
-        <span class="stat-etiqueta">FC reposo</span>
-      </div>
+      <span>FC reposo <strong>{{ snapshot.estado_fisiologico.frecuencia_cardiaca_reposo | int }}</strong></span>
       {% endif %}
       {% if snapshot.estado_fisiologico.estres_promedio is not none %}
-      <div class="stat-card">
-        <span class="stat-valor">{{ snapshot.estado_fisiologico.estres_promedio }}</span>
-        <span class="stat-etiqueta">Estres</span>
-      </div>
+      <span>Estres <strong>{{ snapshot.estado_fisiologico.estres_promedio }}</strong></span>
       {% endif %}
     </div>
     <p class="subtexto-estado">Estado de entrenamiento: <strong>{{ snapshot.estado_fisiologico.training_status }}</strong> · HRV: <strong>{{ snapshot.estado_fisiologico.hrv_status }}</strong></p>
@@ -85,20 +60,26 @@
 
     <h3>Tareas recomendadas por hueco libre</h3>
     {% if snapshot.resultado.asignaciones %}
-    <ul class="lista-asignaciones">
+    <div class="linea-tiempo">
       {% for asignacion in snapshot.resultado.asignaciones %}
-      <li>
-        <span class="hora-hueco">{{ asignacion.hueco.hora_inicio[:5] }}-{{ asignacion.hueco.hora_fin[:5] }}</span>
-        {% if asignacion.tarea %}
-        <span class="etiqueta etiqueta-{{ asignacion.tarea.energia_requerida }}">{{ asignacion.tarea.energia_requerida }}</span>
-        {{ snapshot.nombres_cursos.get(asignacion.tarea.curso, asignacion.tarea.curso) }} — {{ asignacion.tarea.titulo }}
-        <span class="subtexto-estado">(deadline {{ asignacion.tarea.fecha_limite }})</span>
-        {% else %}
-        <span class="grafica-vacia">sin tarea pendiente que asignar</span>
-        {% endif %}
-      </li>
+      <div class="linea-tiempo-fila">
+        <div class="linea-tiempo-riel">
+          <span class="linea-tiempo-punto"></span>
+          {% if not loop.last %}<span class="linea-tiempo-conector"></span>{% endif %}
+        </div>
+        <div class="linea-tiempo-contenido">
+          <span class="hora-hueco">{{ asignacion.hueco.hora_inicio[:5] }}-{{ asignacion.hueco.hora_fin[:5] }}</span>
+          {% if asignacion.tarea %}
+          <span class="etiqueta etiqueta-{{ asignacion.tarea.energia_requerida }}">{{ asignacion.tarea.energia_requerida }}</span>
+          {{ snapshot.nombres_cursos.get(asignacion.tarea.curso, asignacion.tarea.curso) }} — {{ asignacion.tarea.titulo }}
+          <span class="subtexto-estado">(deadline {{ asignacion.tarea.fecha_limite }})</span>
+          {% else %}
+          <span class="grafica-vacia">sin tarea pendiente que asignar</span>
+          {% endif %}
+        </div>
+      </div>
       {% endfor %}
-    </ul>
+    </div>
     {% else %}
     <p class="grafica-vacia">No hay huecos libres hoy.</p>
     {% endif %}
@@ -119,7 +100,7 @@
     {% endif %}
   </section>
 
-  <section>
+  <section class="bloque">
     <h2>Tareas</h2>
     <div class="tabla-scroll">
     <table>
@@ -156,9 +137,12 @@
           </td>
         </tr>
         {% set hallazgos_curso = hallazgos_por_curso.get(tarea.curso, []) %}
-        {% if hallazgos_curso %}
+        {% if tarea.detalles or hallazgos_curso %}
         <tr class="fila-notas">
           <td colspan="7">
+            {% if tarea.detalles %}
+            <div class="hallazgo-nota">{{ tarea.detalles }}</div>
+            {% endif %}
             {% for hallazgo in hallazgos_curso %}
             <div class="hallazgo-nota">
               <span class="etiqueta etiqueta-nota-{{ hallazgo.macro }}">{{ hallazgo.macro }}</span>
@@ -174,8 +158,9 @@
     </div>
   </section>
 
-  <section>
+  <section class="bloque">
     <h2>Agregar tarea</h2>
+    <div class="panel">
     <form class="formulario-tarea" method="post" action="/tareas">
       <label>Curso
         <select name="curso" required>
@@ -200,9 +185,11 @@
       <label>Creditos
         <input type="number" name="peso_academico" value="3" min="1" step="1" required>
       </label>
+      <label class="campo-ancho">Detalles
+        <textarea name="detalles" rows="2" placeholder="Contexto, enunciado, enlaces..."></textarea>
+      </label>
       <button type="submit">Agregar tarea</button>
     </form>
+    </div>
   </section>
-</main>
-</body>
-</html>
+{% endblock %}

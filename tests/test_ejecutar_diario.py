@@ -91,13 +91,35 @@ def test_construir_estado_fisiologico_no_falla_si_frecuencia_cardiaca_reposo_es_
     assert estado.frecuencia_cardiaca_reposo is None
 
 
+def test_construir_estado_fisiologico_no_falla_si_vo2_max_generic_es_none_explicito(cliente_garmin_falso, datos_garmin_mock):
+    datos_estado_entrenamiento = dict(datos_garmin_mock["training_status"])
+    datos_estado_entrenamiento["mostRecentVO2Max"] = {"generic": None, "cycling": None}
+    cliente_garmin_falso.obtener_estado_entrenamiento.return_value = datos_estado_entrenamiento
+
+    estado = construir_estado_fisiologico(cliente_garmin_falso, FECHA_PRUEBA)
+
+    assert estado.vo2_max is None
+
+
 def test_extraer_nivel_body_battery_toma_el_ultimo_valor_del_dia():
     datos_body_battery = [{"charged": 60, "bodyBatteryValuesArray": [[1754200000000, 75], [1754201000000, 45]]}]
     assert _extraer_nivel_body_battery(datos_body_battery) == 45
 
 
+def test_extraer_nivel_body_battery_ignora_el_ultimo_valor_si_es_none():
+    datos_body_battery = [
+        {"charged": 60, "bodyBatteryValuesArray": [[1754200000000, 75], [1754201000000, 45], [1754202000000, None]]}
+    ]
+    assert _extraer_nivel_body_battery(datos_body_battery) == 45
+
+
 def test_extraer_nivel_body_battery_usa_charged_si_no_hay_valores_del_dia():
     datos_body_battery = [{"charged": 60, "bodyBatteryValuesArray": []}]
+    assert _extraer_nivel_body_battery(datos_body_battery) == 60
+
+
+def test_extraer_nivel_body_battery_usa_charged_si_todos_los_valores_son_none():
+    datos_body_battery = [{"charged": 60, "bodyBatteryValuesArray": [[1754200000000, None]]}]
     assert _extraer_nivel_body_battery(datos_body_battery) == 60
 
 

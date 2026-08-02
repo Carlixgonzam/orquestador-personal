@@ -1,36 +1,7 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orquestador personal — Entrenamiento</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
-</head>
-<body>
-<header class="mastodon">
-  <div class="mastodon-interior">
-    <h1>Orquestador <span>Personal</span></h1>
-    <nav>
-      <a href="/">Hoy y tareas</a>
-      <a href="/rendimiento">Rendimiento</a>
-      <a href="/entrenamiento">Entrenamiento</a>
-      <a href="/semana">Semana</a>
-    </nav>
-    <div class="mastodon-regla"></div>
-  </div>
-</header>
-<main>
-  {% with mensajes = get_flashed_messages() %}
-  {% if mensajes %}
-  <div class="banner-alertas">
-    {% for mensaje in mensajes %}
-    <div>{{ mensaje }}</div>
-    {% endfor %}
-  </div>
-  {% endif %}
-  {% endwith %}
-
-  <section>
+{% extends "base.html" %}
+{% block titulo %} — Entrenamiento{% endblock %}
+{% block contenido %}
+  <section class="bloque">
     <h2>Plan de la semana actual ({{ nombre_archivo }})</h2>
     <div class="tabla-scroll">
     <table>
@@ -68,8 +39,9 @@
     </div>
   </section>
 
-  <section>
+  <section class="bloque">
     <h2>Agregar sesion</h2>
+    <div class="panel">
     <form class="formulario-tarea" method="post" action="/entrenamiento">
       <label>Fecha
         <input type="date" name="fecha" required>
@@ -95,11 +67,13 @@
       </label>
       <button type="submit">Agregar sesion</button>
     </form>
+    </div>
   </section>
 
-  <section>
+  <section class="bloque">
     <h2>Generar sesion con swimmingdsl</h2>
     <p class="subtexto-estado">Requiere que tengas corriendo <code>npm start</code> en <code>swimmingdsl/server</code> localmente.</p>
+    <div class="panel">
     <form class="formulario-tarea" method="post" action="/entrenamiento/generar-dsl">
       <label>Fecha
         <input type="date" name="fecha" required>
@@ -128,7 +102,6 @@
       </label>
       <button type="submit">Generar y agregar</button>
     </form>
+    </div>
   </section>
-</main>
-</body>
-</html>
+{% endblock %}

@@ -1,3 +1,4 @@
+import glob
 import os
 from datetime import date
 
@@ -32,6 +33,18 @@ def cargar_plan_semana_actual(ruta_repo_entrenamiento: str, fecha: date | None =
 
     sesiones_crudas = contenido.get("sesiones", [])
     return [_sesion_desde_diccionario(sesion) for sesion in sesiones_crudas]
+
+
+def cargar_todas_las_sesiones(ruta_repo_entrenamiento: str) -> list[SesionEntrenamiento]:
+    patron_archivos = os.path.join(ruta_repo_entrenamiento, "plan-semana-*.yaml")
+    sesiones = []
+    for ruta_archivo in sorted(glob.glob(patron_archivos)):
+        with open(ruta_archivo, encoding="utf-8") as archivo_plan:
+            contenido = yaml.safe_load(archivo_plan)
+        sesiones_crudas = (contenido or {}).get("sesiones", [])
+        sesiones.extend(_sesion_desde_diccionario(sesion) for sesion in sesiones_crudas)
+    sesiones.sort(key=lambda sesion: sesion.fecha)
+    return sesiones
 
 
 def obtener_sesion_de_hoy(sesiones: list[SesionEntrenamiento], fecha: date | None = None) -> SesionEntrenamiento | None:

@@ -7,18 +7,20 @@ Sin bloques fijos hoy.
 
 ## Estado fisiologico
 
-No disponible hoy (ver Alertas abajo).
-
-## Alertas
-
-- Garmin no disponible: mostrando tareas academicas por deadline, sin ajuste fisiologico
-
-- Detalle del error: 'NoneType' object has no attribute 'get'
+- Disposicion para entrenar: 77
+- Estado de entrenamiento: RECOVERY
+- HRV: BALANCED (70 ms, tendencia HRV_BALANCED_7)
+- Body battery: 10
+- ACWR: 0.5
+- Frecuencia cardiaca en reposo: 49.0
+- Frecuencia respiratoria: 15.0
+- Estres promedio: 16
+- Score de resistencia: 5744
 
 
 ## Tareas recomendadas por hueco libre
 
-- 00:00-23:59: Matemática Estructural — EJEMPLO - reemplaza con tu tarea real (energia baja, deadline 2026-08-07, peso 3.0)
+- 00:00-23:59: sin tarea pendiente que asignar
 
 ## Entrenamiento de hoy
 

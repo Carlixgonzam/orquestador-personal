@@ -6,6 +6,7 @@ from fuentes.entrenamiento_cliente import (
     agregar_sesion,
     actualizar_sesion,
     cargar_plan_semana_actual,
+    cargar_todas_las_sesiones,
     eliminar_sesion,
     nombre_archivo_plan_semana_actual,
     obtener_sesion_de_hoy,
@@ -102,3 +103,22 @@ def test_eliminar_sesion_remueve_solo_la_sesion_indicada(tmp_path):
 
     sesiones = cargar_plan_semana_actual(ruta_repo_prueba, FECHA_PRUEBA)
     assert len(sesiones) == cantidad_antes - 1
+
+
+def test_cargar_todas_las_sesiones_combina_varias_semanas_ordenadas_por_fecha(tmp_path):
+    ruta_repo_prueba = _construir_repo_entrenamiento_de_prueba(tmp_path)
+    sesion_semana_siguiente = SesionEntrenamiento(date(2026, 8, 10), "running", "baja", "Semana siguiente")
+    agregar_sesion(ruta_repo_prueba, sesion_semana_siguiente)
+
+    sesiones = cargar_todas_las_sesiones(ruta_repo_prueba)
+
+    assert len(sesiones) == 4
+    assert sesiones[-1] == sesion_semana_siguiente
+    assert [sesion.fecha for sesion in sesiones] == sorted(sesion.fecha for sesion in sesiones)
+
+
+def test_cargar_todas_las_sesiones_repo_vacio_retorna_lista_vacia(tmp_path):
+    ruta_repo_vacio = tmp_path / "entrenamiento_vacio"
+    ruta_repo_vacio.mkdir()
+
+    assert cargar_todas_las_sesiones(str(ruta_repo_vacio)) == []

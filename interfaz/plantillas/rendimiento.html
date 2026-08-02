@@ -1,30 +1,32 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orquestador personal — Rendimiento</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
-</head>
-<body>
-<header class="mastodon">
-  <div class="mastodon-interior">
-    <h1>Orquestador <span>Personal</span></h1>
-    <nav>
-      <a href="/">Hoy y tareas</a>
-      <a href="/rendimiento">Rendimiento</a>
-      <a href="/entrenamiento">Entrenamiento</a>
-      <a href="/semana">Semana</a>
-    </nav>
-    <div class="mastodon-regla"></div>
-  </div>
-</header>
-<main>
-  <section>
+{% extends "base.html" %}
+{% block titulo %} — Rendimiento{% endblock %}
+{% block contenido %}
+  <section class="bloque">
+    <h2>Fitness, fatiga y forma</h2>
+    <p class="subtexto-estado">Estimado a partir de tu disposicion diaria de Garmin: fitness es el promedio movil de 42 dias, fatiga el de 7 dias, forma es la diferencia entre ambos.</p>
+    <div class="panel">
+      {{ grafica_pmc | safe }}
+      <div class="leyenda-pmc">
+        <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-fitness"></span>Fitness</span>
+        <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-fatiga"></span>Fatiga</span>
+        <span class="leyenda-item"><span class="leyenda-punto leyenda-punto-forma"></span>Forma</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque">
+    <h2>Calendario de entrenamientos</h2>
+    <p class="subtexto-estado">Ultimas 12 semanas, entre mas oscura la celda mayor la intensidad del dia.</p>
+    <div class="panel">
+      {{ heatmap_entrenamientos | safe }}
+    </div>
+  </section>
+
+  <section class="bloque">
     <h2>Tendencias</h2>
     <div class="cuadricula-graficas">
       {% for etiqueta, svg in graficas.items() %}
-      <div class="tarjeta-grafica">
+      <div class="tarjeta-grafica panel">
         <h3>{{ etiqueta }}</h3>
         {{ svg | safe }}
       </div>
@@ -32,7 +34,7 @@
     </div>
   </section>
 
-  <section>
+  <section class="bloque">
     <h2>Historial</h2>
     {% if filas %}
     <div class="tabla-scroll">
@@ -65,6 +67,4 @@
     <p class="grafica-vacia">Todavia no hay historial. Cada vez que corras el reporte diario (localmente o por el Action) se agrega una fila aqui.</p>
     {% endif %}
   </section>
-</main>
-</body>
-</html>
+{% endblock %}
