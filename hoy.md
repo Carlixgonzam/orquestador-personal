@@ -1,29 +1,12 @@
-# Reporte del dia — Jueves 2026-08-06
+# Reporte del dia — Viernes 2026-08-07
 
 ## Horario fijo de hoy
 
-- 06:00-07:50 entrenamiento: natacion
+- 08:00-09:20 clase: Construcción de Aplicaciones Móviles (ISIS3510)
+- 09:30-10:50 clase: Programación Web (ISIS3710)
 - 11:00-12:20 clase: Matemática Estructural (MATE1102)
+- 12:30-13:50 clase: Física 2 (FISI1528)
 
-## Estado fisiologico
+## Ahora mismo
 
-- Disposicion para entrenar: 92
-- Estado de entrenamiento: RECOVERY
-- HRV: BALANCED (76 ms, tendencia HRV_BALANCED_8)
-- Body battery: 78
-- ACWR: 0.3
-- Frecuencia cardiaca en reposo: 49.0
-- Frecuencia respiratoria: 11.0
-- Estres promedio: 12
-- Score de resistencia: 5710
-
-
-## Tareas recomendadas por hueco libre
-
-- 00:00-06:00: Diseño de Algoritmos — EJEMPLO - reemplaza con tu tarea real (energia alta, deadline 2026-08-14, peso 3.0)
-- 07:50-11:00: sin tarea pendiente que asignar
-- 12:20-23:59: sin tarea pendiente que asignar
-
-## Entrenamiento de hoy
-
-- No hay sesion de entrenamiento planeada para hoy
+Estas dentro de un bloque fijo: Matemática Estructural (11:00-12:20). No hay recomendaciones adicionales mientras dure este bloque.
