@@ -1,4 +1,4 @@
-# Reporte del dia — Sabado 2026-08-08
+# Reporte del dia — Domingo 2026-08-09
 
 ## Horario fijo de hoy
 
@@ -7,13 +7,15 @@ Sin bloques fijos hoy.
 
 ## Estado fisiologico
 
-- Disposicion para entrenar: 0
-- Estado de entrenamiento: desconocido
-- HRV: desconocido
-- Body battery: 88
-- Frecuencia cardiaca en reposo: 49.0
-- Frecuencia respiratoria: 12.0
-- Estres promedio: 10
+- Disposicion para entrenar: 60
+- Estado de entrenamiento: MAINTAINING
+- HRV: BALANCED (85 ms, tendencia HRV_BALANCED_2)
+- Body battery: 80
+- ACWR: 1.1
+- Frecuencia cardiaca en reposo: 45.0
+- Frecuencia respiratoria: 14.0
+- Estres promedio: 6
+- Score de resistencia: 5697
 
 
 ## Tareas recomendadas por hueco libre
