@@ -1,12 +1,25 @@
-# Reporte del dia — Viernes 2026-08-14
+# Reporte del dia — Sabado 2026-08-15
 
 ## Horario fijo de hoy
 
-- 08:00-09:20 clase: Construcción de Aplicaciones Móviles (ISIS3510)
-- 09:30-10:50 clase: Programación Web (ISIS3710)
-- 11:00-12:20 clase: Matemática Estructural (MATE1102)
-- 12:30-13:50 clase: Física 2 (FISI1528)
+Sin bloques fijos hoy.
 
-## Ahora mismo
 
-Estas dentro de un bloque fijo: Matemática Estructural (11:00-12:20). No hay recomendaciones adicionales mientras dure este bloque.
+## Estado fisiologico
+
+- Disposicion para entrenar: 0
+- Estado de entrenamiento: desconocido
+- HRV: desconocido
+- Body battery: 27
+- Frecuencia cardiaca en reposo: 50.0
+- Frecuencia respiratoria: 14.0
+- Estres promedio: 15
+
+
+## Tareas recomendadas por hueco libre
+
+- 00:00-23:59: Matemática Estructural — EJEMPLO - reemplaza con tu tarea real (energia baja, deadline 2026-08-07, peso 3.0)
+
+## Entrenamiento de hoy
+
+- No hay sesion de entrenamiento planeada para hoy
