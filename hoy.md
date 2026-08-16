@@ -1,4 +1,4 @@
-# Reporte del dia — Sabado 2026-08-15
+# Reporte del dia — Domingo 2026-08-16
 
 ## Horario fijo de hoy
 
@@ -10,10 +10,7 @@ Sin bloques fijos hoy.
 - Disposicion para entrenar: 0
 - Estado de entrenamiento: desconocido
 - HRV: desconocido
-- Body battery: 27
-- Frecuencia cardiaca en reposo: 50.0
-- Frecuencia respiratoria: 14.0
-- Estres promedio: 15
+- Body battery: 0
 
 
 ## Tareas recomendadas por hueco libre
